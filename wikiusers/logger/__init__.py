@@ -1,0 +1,1 @@
+from .logger import info, succ, debug, warn, err

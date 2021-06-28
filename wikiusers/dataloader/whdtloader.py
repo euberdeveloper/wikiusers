@@ -2,7 +2,7 @@ import requests
 from pathlib import Path
 from whdtscraper import fetch_dumps, fetch_latest_version, WIKI_URL
 
-from wikiusers.logger import logger
+from wikiusers import logger
 from wikiusers.dataloader.settings import DEFAULT_ASSETS_DIR
 
 

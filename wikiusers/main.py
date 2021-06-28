@@ -1,5 +1,4 @@
-from wikiusers.dataloader.whdtloader import WhdtLoader
-
+from wikiusers.dataloader import WhdtLoader
 
 def run():
     loader = WhdtLoader(lang='ca')
