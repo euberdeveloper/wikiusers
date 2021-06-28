@@ -1,6 +1,6 @@
 from dateutil import parser as date_parser
 
-class KEYS:
+class WhdtKeys:
     wiki_db = 0
     event_entity = 1
     event_type = 2
@@ -83,7 +83,3 @@ def parse_int(num: str):
 
 def parse_str_array(arr: str):
     return arr.split(',') if arr != '' else []
-
-if __name__ == '__main__':
-    for i in range(int(1e8)):
-        a = KEYS.revision_first_identity_reverting_revision_id
