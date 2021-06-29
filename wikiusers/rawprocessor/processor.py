@@ -48,13 +48,13 @@ class RawProcessor:
 
     def _process_file(self, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
-        month, year = self.__get_tsv_month_and_year(path.name())
+        month, year = self.__get_tsv_month_and_year(path.name)
         analyzer = Analyzer(path, month, year, self.lang, self.database)
         analyzer.analyze()
         logger.succ(f'Finished processing {path}', lang=self.lang, scope='ANALYZER')
 
     def process(self) -> None:
-        datasets_paths = self.loader.get_tsv_files(self.lang)
+        datasets_paths = self.loader.get_tsv_files()
 
         if self.parallelize:
             Parallel(n_jobs=self.n_processes)(

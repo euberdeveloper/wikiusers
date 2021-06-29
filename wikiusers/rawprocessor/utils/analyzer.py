@@ -19,6 +19,24 @@ class Analyzer:
         self.user_alter_blocks = {}
         self.user_helper_info = {}
 
+    def __check_if_new_month(self, timestamp: datetime, check: bool) -> None:
+        month = two_digits(timestamp.month)
+        if (not check or month != self.current_month):
+            year = str(timestamp.year)
+            logger.info(f'New month {month}/{year}', lang=self.lang, scope='ANALYZER')
+            self.uploader.upload_to_db(
+                self.current_year,
+                self.current_month,
+                self.user_document,
+                self.user_document_update,
+                self.user_month_events,
+                self.user_helper_info,
+                self.user_alter_groups,
+                self.user_alter_blocks
+            )
+            self.current_month = month
+            self.current_year = year
+
     def __update_month_object(self, uid: str, namespace: str, event_type: str, timestamp: datetime, minor_edit: bool, page_id: str, page_seconds_since_previous_revision: str) -> None:
         if uid not in self.user_month_events:
             self.user_month_events[uid] = new_month_obj()
@@ -80,25 +98,6 @@ class Analyzer:
                 user_month['pages_seconds_count'] += 1
 
         user_month['last_event'] = timestamp
-
-    def __check_if_new_month(self, timestamp: datetime, check: bool) -> None:
-        month = timestamp.month
-        if (not check or month != self.current_month):
-            month = two_digits(month)
-            year = str(timestamp.year)
-            logger.info(f'New month {month}/{year}', lang=self.lang, scope='ANALYZER')
-            self.uploader.upload_to_db(
-                self.current_year,
-                self.current_month,
-                self.user_document,
-                self.user_document_update,
-                self.user_month_events,
-                self.user_alter_groups,
-                self.user_alter_blocks,
-                self.user_helper_info
-            )
-            self.current_month = month
-            self.current_year = year
 
     def __analyze_user_create(self, parts: list[str], timestamp: datetime) -> None:
         uid = parse_int(parts[WhdtKeys.user_id])
@@ -195,6 +194,7 @@ class Analyzer:
 
     def analyze(self) -> None:
         with bz2.open(self.path, 'rt') as input:
+            timestamp = None
             for line in input:
                 parts = line.split('\t')
                 timestamp = parse_date(parts[WhdtKeys.event_timestamp])
@@ -211,4 +211,4 @@ class Analyzer:
                     self.__analyze_user_create(parts, timestamp)
                 elif event_entity == 'user' and event_type == 'altergroups':
                     self.__analyze_user_altergroups(parts, timestamp)
-        self.__check_if_new_month(timestamp, False)
+            self.__check_if_new_month(timestamp, False)
