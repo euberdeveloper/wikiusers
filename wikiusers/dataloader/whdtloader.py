@@ -18,7 +18,7 @@ class WhdtLoader:
         logger.debug(f'Downloaded {file_path}', lang=self.lang, scope='scraper')
 
     def __download_if_needed(self, file_path: str, size_in_bytes: int, tsv_url: str) -> None:
-        logger.debug(f'Checking {file_path}', lang=self.lang, scope='scraper')
+        logger.debug(f'Syncing {file_path}', lang=self.lang, scope='scraper')
         file_path_obj = self.wiki_dir.joinpath(file_path)
 
         if not file_path_obj.is_file():
