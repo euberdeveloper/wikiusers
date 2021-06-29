@@ -16,13 +16,22 @@ class RawProcessor:
             self.loader.sync_wikies()
 
     def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
+        
+        time_str = tsv_file_name.split('.')[-3]
+        parts = time_str.split('-')
+        
+        if len(parts) > 1:
+            [year, month] = parts
+        else:
+            year = parts[0]
+
         try:
-            month = int(tsv_file_name.split('.')[::-1][1].split('-')[1])
+            month = int(month)
         except:
             month = None
 
         try:
-            year = int(tsv_file_name.split('.')[::-1][1])
+            year = int(year)
         except:
             year = None
 
