@@ -3,12 +3,11 @@ from pathlib import Path
 from whdtscraper import fetch_dumps, fetch_latest_version, WIKI_URL
 
 from wikiusers import logger
-from wikiusers.dataloader.settings import DEFAULT_ASSETS_DIR
 
 
 class WhdtLoader:
 
-    def __init__(self, datasets_dir: Path = DEFAULT_ASSETS_DIR, lang='it'):
+    def __init__(self, datasets_dir: Path, lang: str):
         self.wiki_dir = datasets_dir.joinpath('whdt')
         self.lang = lang
 
@@ -25,7 +24,8 @@ class WhdtLoader:
         if not file_path_obj.is_file():
             self.__download(file_path, file_path_obj, tsv_url)
         elif abs(file_path_obj.stat().st_size - size_in_bytes) > 50e6:
-            logger.warn(f'{file_path} already exists but with unexpected size, redownloading', lang=self.lang, scope='scraper')
+            logger.warn(f'{file_path} already exists but with unexpected size, redownloading',
+                        lang=self.lang, scope='scraper')
             file_path_obj.unlink()
             self.__download(file_path, file_path_obj, tsv_url)
         else:

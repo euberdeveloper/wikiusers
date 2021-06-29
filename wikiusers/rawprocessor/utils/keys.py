@@ -1,5 +1,3 @@
-from dateutil import parser as date_parser
-
 class WhdtKeys:
     wiki_db = 0
     event_entity = 1
@@ -73,13 +71,12 @@ class WhdtKeys:
     revision_tags = 69
 
 
-def parse_date(date: str):
-    return date_parser.parse(date) if date != '' else None
-
-
-def parse_int(num: str):
-    return int(num) if num != '' else None
-
-
-def parse_str_array(arr: str):
-    return arr.split(',') if arr != '' else []
+EVENTS_MAP = {
+    'create': 'create',
+    'create-page': 'create',
+    'delete': 'delete',
+    'restore': 'restore',
+    'move': 'move',
+    'merge': 'merge',
+    'edit': 'edit'
+}
