@@ -8,6 +8,7 @@ whdtscraper = "*"
 termcolor = "*"
 python-dateutil = "*"
 pymongo = "*"
+joblib = "*"
 
 [dev-packages]
 pylint = "*"
