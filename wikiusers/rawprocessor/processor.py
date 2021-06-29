@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional, Tuple
 from joblib import Parallel, delayed
 
 from wikiusers import logger
@@ -13,6 +14,12 @@ class RawProcessor:
         self.loader = WhdtLoader(self.datasets_dir, self.lang)
         if self.sync_data:
             self.loader.sync_wikies()
+
+    def __get_tsv_month(self, tsv_file_name: str) -> Optional[int]:
+        try:
+            return int(tsv_file_name.split('.')[::-1][1].split('-')[1])
+        except:
+            return None
 
     def __init__(
         self,
@@ -34,7 +41,8 @@ class RawProcessor:
 
     def _process_file(self, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
-        analyzer = Analyzer(path, self.lang, self.database)
+        month = self.__get_tsv_month(path.name())
+        analyzer = Analyzer(path, month, self.lang, self.database)
         analyzer.analyze()
         logger.succ(f'Finished processing {path}', lang=self.lang, scope='ANALYZER')
 

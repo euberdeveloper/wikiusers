@@ -16,6 +16,7 @@ class Analyzer:
     def __init__(
         self,
         path: Path,
+        start_month: int,
         lang: str,
         database
     ):
@@ -24,6 +25,8 @@ class Analyzer:
         self.database = database
 
         self.__init_globals()
+        self.current_month = 1 if start_month is None else start_month
+
 
     def analyze(self) -> None:
         pass
