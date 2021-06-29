@@ -17,8 +17,8 @@ class WhdtLoader:
         open(file_path_obj, 'wb').write(response.content)
         logger.debug(f'Downloaded {file_path}', lang=self.lang, scope='scraper')
 
-    def __download_if_needed__(self, file_path: str, size_in_bytes: int, tsv_url: str) -> None:
-        logger.debug(f'Downloading {file_path}', lang=self.lang, scope='scraper')
+    def __download_if_needed(self, file_path: str, size_in_bytes: int, tsv_url: str) -> None:
+        logger.debug(f'Checking {file_path}', lang=self.lang, scope='scraper')
         file_path_obj = self.wiki_dir.joinpath(file_path)
 
         if not file_path_obj.is_file():
@@ -44,7 +44,7 @@ class WhdtLoader:
         for dump in dumps:
             url: str = dump['url']
             size_in_bytes: int = int(dump['bytes'])
-            self.__download_if_needed__(url.replace(f'{WIKI_URL}/', ''), size_in_bytes, url)
+            self.__download_if_needed(url.replace(f'{WIKI_URL}/', ''), size_in_bytes, url)
 
         logger.succ(f'Synced tsv files', lang=self.lang, scope='scraper')
 
