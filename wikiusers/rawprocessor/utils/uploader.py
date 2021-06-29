@@ -77,7 +77,7 @@ class Uploader:
         self.collection = self.database.get_collection(f'{lang}wiki_raw')
         self.__create_index()
 
-    def update_db(
+    def upload_to_db(
         self,
         year: str,
         month: str,
