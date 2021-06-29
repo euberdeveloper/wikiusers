@@ -2,6 +2,7 @@ import bz2
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from wikiusers import logger
 from wikiusers.rawprocessor.utils import Uploader,  WhdtKeys,  EVENTS_MAP
@@ -21,6 +22,7 @@ class Analyzer:
 
     def __check_if_new_month(self, timestamp: datetime, check: bool) -> None:
         month = two_digits(timestamp.month)
+        # assumes not changes such as 04/2001 -> 04/2002
         if (not check or month != self.current_month):
             year = str(timestamp.year)
             logger.info(f'New month {month}/{year}', lang=self.lang, scope='ANALYZER')
@@ -178,8 +180,8 @@ class Analyzer:
     def __init__(
         self,
         path: Path,
-        start_month: int,
-        start_year: int,
+        start_month: Optional[int],
+        start_year: Optional[int],
         lang: str,
         database: str
     ):
@@ -187,12 +189,19 @@ class Analyzer:
         self.lang = lang
 
         self.current_month = '01' if start_month is None else two_digits(start_month)
-        self.current_year = str(start_year)
+        self.current_year = str(start_year) if start_year is not None else start_year
 
         self.uploader = Uploader(database, lang)
         self.__init_globals()
 
     def analyze(self) -> None:
+        if self.current_year is None:
+            with bz2.open(self.path, 'rt') as input:
+                line = input.readline()
+                parts = line.split('\t')
+                timestamp = parse_date(parts[WhdtKeys.event_timestamp])
+                self.current_year = str(timestamp.year)
+
         with bz2.open(self.path, 'rt') as input:
             timestamp = None
             for line in input:
