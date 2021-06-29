@@ -10,6 +10,8 @@ def parse_date(date: str) -> Union[datetime, None]:
 def parse_int(num: str) -> Union[int, None]:
     return int(num) if num != '' else None
 
+def parse_bool(val: str) -> bool:
+    return val != ''
 
 def parse_str_array(arr: str) -> list[str]:
     return arr.split(',') if arr != '' else []

@@ -4,8 +4,8 @@ from joblib import Parallel, delayed
 
 from wikiusers import logger
 from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE
-from wikiusers.dataloader.whdtloader import WhdtLoader
-from wikiusers.rawprocessor.utils.analyzer import Analyzer
+from wikiusers.dataloader import WhdtLoader
+from wikiusers.rawprocessor.utils import Analyzer
 
 
 class RawProcessor:
@@ -15,11 +15,18 @@ class RawProcessor:
         if self.sync_data:
             self.loader.sync_wikies()
 
-    def __get_tsv_month(self, tsv_file_name: str) -> Optional[int]:
+    def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
         try:
-            return int(tsv_file_name.split('.')[::-1][1].split('-')[1])
+            month = int(tsv_file_name.split('.')[::-1][1].split('-')[1])
         except:
-            return None
+            month = None
+
+        try:
+            year = int(tsv_file_name.split('.')[::-1][1])
+        except:
+            year = None
+
+        return month, year
 
     def __init__(
         self,
@@ -41,8 +48,8 @@ class RawProcessor:
 
     def _process_file(self, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
-        month = self.__get_tsv_month(path.name())
-        analyzer = Analyzer(path, month, self.lang, self.database)
+        month, year = self.__get_tsv_month_and_year(path.name())
+        analyzer = Analyzer(path, month, year, self.lang, self.database)
         analyzer.analyze()
         logger.succ(f'Finished processing {path}', lang=self.lang, scope='ANALYZER')
 

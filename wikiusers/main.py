@@ -1,5 +1,6 @@
-from wikiusers.dataloader import WhdtLoader
+from wikiusers.rawprocessor import RawProcessor
+
 
 def run():
-    loader = WhdtLoader(lang='ca')
-    loader.sync_wikies()
+    rawprocessor = RawProcessor(lang='ca')
+    rawprocessor.process()
