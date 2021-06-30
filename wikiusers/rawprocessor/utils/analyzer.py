@@ -18,6 +18,7 @@ class Analyzer:
         self.user_month_events = {}
         self.user_alter_groups = {}
         self.user_alter_blocks = {}
+        self.user_history_usernames = {}
         self.user_helper_info = {}
 
     def __check_if_new_month(self, timestamp: datetime, check: bool) -> None:
@@ -34,7 +35,8 @@ class Analyzer:
                 self.user_month_events,
                 self.user_helper_info,
                 self.user_alter_groups,
-                self.user_alter_blocks
+                self.user_alter_blocks,
+                self.user_history_usernames
             )
             self.current_month = month
             self.current_year = year
@@ -101,6 +103,30 @@ class Analyzer:
 
         user_month['last_event'] = timestamp
 
+    def __add_provvisory_user_insert(self, uid: str, parts: list[str]) -> None:
+        if uid not in self.user_exists:
+            username = parts[WhdtKeys.user_text]
+            creation_timestamp = parse_date(parts[WhdtKeys.user_creation_timestamp])
+            registration_timestamp = parse_date(parts[WhdtKeys.user_registration_timestamp])
+            is_bot = parts[WhdtKeys.user_is_bot_by] != ''
+            groups = parse_str_array(parts[WhdtKeys.user_groups])
+            blocks = parse_str_array(parts[WhdtKeys.user_blocks])
+            self.user_document[uid] = new_user_insert_obj(
+                uid, username, creation_timestamp, registration_timestamp, is_bot, groups, blocks)
+            self.user_exists.add(uid)
+
+    def __add_current_user_groups(self, uid: str, current_groups: list[str], timestamp: datetime) -> None:
+        if uid not in self.user_alter_groups:
+            self.user_alter_groups[uid] = [{'timestamp': timestamp, 'groups': current_groups}]
+        else:
+            self.user_alter_groups[uid].append({'timestamp': timestamp, 'groups': current_groups})
+
+    def __add_current_user_blocks(self, uid: str, current_blocks: list[str], timestamp: datetime) -> None:
+        if uid not in self.user_alter_blocks:
+            self.user_alter_blocks[uid] = [{'timestamp': timestamp, 'blocks': current_blocks}]
+        else:
+            self.user_alter_blocks[uid].append({'timestamp': timestamp, 'blocks': current_blocks})
+
     def __analyze_user_create(self, parts: list[str], timestamp: datetime) -> None:
         uid = parse_int(parts[WhdtKeys.user_id])
 
@@ -117,47 +143,42 @@ class Analyzer:
                 uid, username, creation_timestamp, registration_timestamp, is_bot, groups, blocks)
 
             current_groups = parse_str_array(parts[WhdtKeys.event_user_groups_historical])
-            if uid not in self.user_alter_groups:
-                self.user_alter_groups[uid] = [{'t': timestamp, 'g': current_groups}]
-            else:
-                self.user_alter_groups[uid].append({'t': timestamp, 'g': current_groups})
+            self.__add_current_user_groups(uid, current_groups, timestamp)
 
             current_blocks = parse_str_array(parts[WhdtKeys.event_user_blocks_historical])
-            if uid not in self.user_alter_blocks:
-                self.user_alter_blocks[uid] = [{'t': timestamp, 'g': current_blocks}]
-            else:
-                self.user_alter_blocks[uid].append({'t': timestamp, 'g': current_blocks})
+            self.__add_current_user_blocks(uid, current_blocks, timestamp)
 
     def __analyze_user_altergroups(self, parts: list[str], timestamp: datetime) -> None:
         uid = parse_int(parts[WhdtKeys.user_id])
-        if uid != '' and uid is not None:
-            if uid not in self.user_exists:
-                username = parts[WhdtKeys.user_text]
-                creation_timestamp = parse_date(parts[WhdtKeys.user_creation_timestamp])
-                registration_timestamp = parse_date(parts[WhdtKeys.user_registration_timestamp])
-                is_bot = parts[WhdtKeys.user_is_bot_by] != ''
-                groups = parse_str_array(parts[WhdtKeys.user_groups])
-                blocks = parse_str_array(parts[WhdtKeys.user_blocks])
-                self.user_document[uid] = new_user_insert_obj(
-                    uid, username, creation_timestamp, registration_timestamp, is_bot, groups, blocks)
-                self.user_exists.add(uid)
+        if uid is not None:
+            self.__add_provvisory_user_insert(uid, parts)
 
             current_groups = parse_str_array(parts[WhdtKeys.event_user_groups_historical])
-            if uid not in self.user_alter_groups:
-                self.user_alter_groups[uid] = [{'t': timestamp, 'g': current_groups}]
-            else:
-                self.user_alter_groups[uid].append({'t': timestamp, 'g': current_groups})
+            self.__add_current_user_groups(uid, current_groups, timestamp)
+
+    def __analyze_user_alterblocks(self, parts: list[str], timestamp: datetime) -> None:
+        uid = parse_int(parts[WhdtKeys.user_id])
+        if uid is not None:
+            self.__add_provvisory_user_insert(uid, parts)
 
             current_blocks = parse_str_array(parts[WhdtKeys.event_user_blocks_historical])
-            if uid not in self.user_alter_blocks:
-                self.user_alter_blocks[uid] = [{'t': timestamp, 'g': current_blocks}]
+            self.__add_current_user_blocks(uid, current_blocks, timestamp)
+
+    def __analyze_user_rename(self, parts: list[str], timestamp: datetime) -> None:
+        uid = parse_int(parts[WhdtKeys.user_id])
+        if uid is not None:
+            self.__add_provvisory_user_insert(uid, parts)
+
+            current_username = parts[WhdtKeys.event_user_text_historical]
+            if uid not in self.user_history_usernames:
+                self.user_history_usernames[uid] = [{'timestamp': timestamp, 'username': current_username}]
             else:
-                self.user_alter_blocks[uid].append({'t': timestamp, 'g': current_blocks})
+                self.user_history_usernames[uid].append({'timestamp': timestamp, 'username': current_username})
 
     def __analyze_page_or_revision(self, event_type: str, timestamp: datetime, parts: list[str]) -> None:
         uid = parse_int(parts[WhdtKeys.event_user_id])
 
-        if uid != '' and uid is not None:
+        if uid is not None:
             if uid not in self.user_exists:
                 username = parts[WhdtKeys.event_user_text]
                 creation_timestamp = parse_date(parts[WhdtKeys.event_user_creation_timestamp])
@@ -216,8 +237,14 @@ class Analyzer:
                     self.__analyze_page_or_revision('edit', timestamp, parts)
                 elif event_entity == 'page':
                     self.__analyze_page_or_revision(event_type, timestamp, parts)
-                elif event_entity == 'user' and event_type == 'create':
-                    self.__analyze_user_create(parts, timestamp)
-                elif event_entity == 'user' and event_type == 'altergroups':
-                    self.__analyze_user_altergroups(parts, timestamp)
+                elif event_entity == 'user':
+                    if event_type == 'create':
+                        self.__analyze_user_create(parts, timestamp)
+                    elif event_type == 'altergroups':
+                        self.__analyze_user_altergroups(parts, timestamp)
+                    elif event_type == 'alterblocks':
+                        self.__analyze_user_alterblocks(parts, timestamp)
+                    elif event_type == 'rename':
+                        self.__analyze_user_rename(parts, timestamp)
+
             self.__check_if_new_month(timestamp, False)

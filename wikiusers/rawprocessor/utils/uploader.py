@@ -70,6 +70,16 @@ class Uploader:
 
         return updates
 
+    def __get_user_history_usernames(self, user_history_usernames: dict) -> list[dict]:
+        updates = []
+
+        for uid in list(user_history_usernames.keys()):
+            if uid in user_history_usernames:
+                updates.append(UpdateOne({'id': uid}, {'$push': {'history_usernames': user_history_usernames[uid]}}))
+                user_history_usernames.pop(uid)
+
+        return updates
+
     def __init__(self, database: str, lang: str):
         self.lang = lang
         self.connection = MongoClient()
@@ -86,7 +96,8 @@ class Uploader:
         user_month_events: dict,
         user_helper_info: dict,
         user_alter_groups: dict,
-        user_alter_blocks: dict
+        user_alter_blocks: dict,
+        user_history_usernames: dict
     ) -> None:
         logger.info(f'Uploading data', year=year, month=month, scope='UPLOADER')
 
@@ -98,6 +109,8 @@ class Uploader:
         events_updates = self.__get_events_updates(month, year, user_month_events, user_helper_info)
         logger.debug(f'Retrieving user alters', year=year, month=month, scope='UPLOADER')
         user_alerts = self.__get_user_alters(user_alter_groups, user_alter_blocks)
+        logger.debug(f'Retrieving user history usernames', year=year, month=month, scope='UPLOADER')
+        user_usernames_updates = self.__get_user_history_usernames(user_history_usernames)
 
         logger.debug(f'Pushing user inserts', year=year, month=month, scope='UPLOADER')
         if (user_inserts):
@@ -117,5 +130,9 @@ class Uploader:
         logger.debug(f'Pushing user alerts', year=year, month=month, scope='UPLOADER')
         if (user_alerts):
             self.collection.bulk_write(user_alerts)
+
+        logger.debug(f'Pushing user history usernames', year=year, month=month, scope='UPLOADER')
+        if (user_usernames_updates):
+            self.collection.bulk_write(user_usernames_updates)
 
         logger.succ(f'Uploading data', year=year, month=month, scope='UPLOADER')
