@@ -75,7 +75,7 @@ class Uploader:
 
         for uid in list(user_history_usernames.keys()):
             if uid in user_history_usernames:
-                updates.append(UpdateOne({'id': uid}, {'$push': {'history_usernames': user_history_usernames[uid]}}))
+                updates.append(UpdateOne({'id': uid}, {'$push': {'history_usernames': {'$each': user_history_usernames[uid]}}}))
                 user_history_usernames.pop(uid)
 
         return updates
