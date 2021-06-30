@@ -19,3 +19,4 @@ python_version = "3.9"
 
 [scripts]
 lint = "pylint wikiusers"
+cawiki = "python -m wikiusers 2>&1 | tee ./logs/cawiki.log"
