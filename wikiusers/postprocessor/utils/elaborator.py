@@ -350,8 +350,12 @@ def _elaborate_user(u: dict) -> dict:
 
 
 def elaborate_users_batch(users_batch: list[dict]) -> list[dict]:
-    return [
+    elaborated_users = [
         _elaborate_user(user)
         for user in users_batch
+    ]
+    return [
+        user
+        for user in elaborated_users
         if user is not None
     ]
