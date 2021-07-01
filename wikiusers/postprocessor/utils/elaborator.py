@@ -36,14 +36,29 @@ def _fill_usernames_history(input: dict, output: dict) -> None:
 
 def _fill_activity(input: dict, output: dict) -> None:
     activity_per_month = {}
-
     activity_per_year = {}
-
     activity_total = {}
 
+    # TOTAL HELPER VARS DECLARATION
+
+    at_max_inactive_interval_in_days_sum = 0
+    at_max_inactive_interval_in_days_count = 0
+    at_max_inactive_interval_in_days_max = -1
+    at_n_activity_days = 0
+    at_sesc_since_same_day_event_sum = 0
+    at_sesc_since_same_day_event_count = 0
+    at_avg_secs_since_last_edit_on_same_page_sum = 0
+    at_avg_secs_since_last_edit_on_same_page_count = 0
+    at_avg_page_n_sum = 0
+    at_avg_page_n_count = 0
+    at_avg_page_entropy_sum = 0
+    at_avg_page_entropy_count = 0
+
     events_per_month: dict[str, dict] = input['events']['per_month']
-    for year, year_events in events_per_month.items():
+    for year, year_events in sorted(events_per_month.items()):
         activity_per_month[year] = {}
+
+        # PER YEAR HELPER VARS DECLARATION
 
         activity_per_year[year] = {}
         apy = activity_per_year[year]
@@ -60,7 +75,7 @@ def _fill_activity(input: dict, output: dict) -> None:
         apy_avg_page_entropy_sum = 0
         apy_avg_page_entropy_count = 0
 
-        for month, month_details in year_events.items():
+        for month, month_details in sorted(year_events.items()):
             activity_per_month[year][month] = {}
             apm = activity_per_month[year][month]
 
@@ -91,12 +106,12 @@ def _fill_activity(input: dict, output: dict) -> None:
             apme = apm['events']
             apme_per_namespace = apme['per_namespace']
             apme_total = apme['total']
-            for ns, ns_events in month_details['namespaces'].items():
+            for ns, ns_events in sorted(month_details['namespaces'].items()):
                 apme_per_namespace[ns] = {}
                 apme_curr_ns = apme_per_namespace[ns]
 
                 total_ns = 0
-                for event_type, event_count in ns_events.items():
+                for event_type, event_count in sorted(ns_events.items()):
                     apme_curr_ns[event_type] = event_count
                     if event_type != 'minor_edit':
                         total_ns += event_count
@@ -155,6 +170,14 @@ def _fill_activity(input: dict, output: dict) -> None:
             except:
                 pass
 
+            # TOTAL PROPS
+
+            # first/last timestamp
+
+            if 'first_event_timestamp' not in activity_total:
+                activity_total['first_event_timestamp'] = month_details['first_event']
+
+            activity_total['last_event_timestamp'] = month_details['last_event']
 
         # PER YEAR PROPS
 
@@ -207,14 +230,103 @@ def _fill_activity(input: dict, output: dict) -> None:
                 if ns not in apye_per_namespace:
                     apye_per_namespace[ns] = {}
                 apye_curr_ns = apye_per_namespace[ns]
-                
+
                 for event_type, event_count in ns_events.items():
                     try:
                         apye_curr_ns[event_type] += event_count
                     except:
                         apye_curr_ns[event_type] = event_count
 
-                
+        # TOTAL PROPS
+
+        # max inactive interval
+
+        at_max_inactive_interval_in_days_sum += apy_max_inactive_interval_in_days_sum
+        at_max_inactive_interval_in_days_count += apy_max_inactive_interval_in_days_count
+        at_max_inactive_interval_in_days_max = max(
+            at_max_inactive_interval_in_days_max, apy_max_inactive_interval_in_days_max)
+
+        # n activity days
+
+        at_n_activity_days += apy_n_activity_days
+
+        # secs since same day event
+
+        at_sesc_since_same_day_event_sum += apy_sesc_since_same_day_event_sum
+        at_sesc_since_same_day_event_count += apy_sesc_since_same_day_event_count
+
+        # avg secs since last edit on same page
+
+        at_avg_secs_since_last_edit_on_same_page_sum += apy_avg_secs_since_last_edit_on_same_page_sum
+        at_avg_secs_since_last_edit_on_same_page_count += apy_avg_secs_since_last_edit_on_same_page_count
+
+        # page n and entropy
+
+        at_avg_page_n_sum += apy_avg_page_n_sum
+        at_avg_page_n_count += apy_avg_page_n_count
+
+        at_avg_page_entropy_sum += apy_avg_page_entropy_sum
+        at_avg_page_entropy_count += apy_avg_page_entropy_count
+
+    # TOTAL PROPS
+
+    # max inactive interval
+
+    activity_total['max_inactive_interval_in_days'] = at_max_inactive_interval_in_days_max
+    activity_total['avg_max_inactive_interval_in_days'] = _avg(
+        at_max_inactive_interval_in_days_sum, at_max_inactive_interval_in_days_count)
+
+    # n activity days
+
+    activity_total['n_activity_days'] = at_n_activity_days
+
+    # secs since same day event
+
+    activity_total['avg_secs_since_same_day_event'] = _avg(
+        at_sesc_since_same_day_event_sum, at_sesc_since_same_day_event_count)
+
+    # avg secs since last edit on same page
+
+    activity_total['avg_secs_since_last_edit_on_same_page'] = _avg(
+        at_avg_secs_since_last_edit_on_same_page_sum, at_avg_secs_since_last_edit_on_same_page_count)
+
+    # page n and entropy
+
+    activity_total['pages_activity'] = {
+        'avg_n': _avg(
+            at_avg_page_n_sum, at_avg_page_n_count),
+        'avg_entropy': _avg(
+            at_avg_page_entropy_sum, at_avg_page_entropy_count)
+    }
+
+    # events
+
+    activity_total['events'] = {'per_namespace': {}, 'total': {}}
+    ate = activity_total['events']
+    ate_per_namespace = ate['per_namespace']
+    ate_total = ate['total']
+    for year, year_details in activity_per_year.items():
+        apme_total = year_details['events']['total']
+        apme_per_namespace = year_details['events']['per_namespace']
+
+        for event_type, event_count in apme_total.items():
+            try:
+                ate_total[event_type] += event_count
+            except:
+                ate_total[event_type] = event_count
+
+        for ns, ns_events in apme_per_namespace.items():
+            if ns not in ate_per_namespace:
+                ate_per_namespace[ns] = {}
+            ate_curr_ns = ate_per_namespace[ns]
+
+            for event_type, event_count in ns_events.items():
+                try:
+                    ate_curr_ns[event_type] += event_count
+                except:
+                    ate_curr_ns[event_type] = event_count
+
+    # ADD CHAGES TO OUTPUT
 
     output['activity'] = {
         'total': activity_total,
