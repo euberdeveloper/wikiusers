@@ -26,7 +26,8 @@ def _create_history(alter_groups: list[dict], key: str) -> list[dict]:
 def _fill_groups_or_blocks(input: dict, output: dict, key: str) -> None:
     output[key] = {
         'current': input[key],
-        'history': _create_history(input['alter'][key], key)
+        'history': _create_history(input['alter'][key], key),
+        'ever_had': list({ el for alter in input['alter'][key] for el in alter[key] })
     }
 
 
