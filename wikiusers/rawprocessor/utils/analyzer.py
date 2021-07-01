@@ -127,6 +127,12 @@ class Analyzer:
         else:
             self.user_alter_blocks[uid].append({'timestamp': timestamp, 'blocks': current_blocks})
 
+    def __add_current_user_username(self, uid: str, current_username: list[str], timestamp: datetime) -> None:
+        if uid not in self.user_history_usernames:
+            self.user_history_usernames[uid] = [{'timestamp': timestamp, 'username': current_username}]
+        else:
+            self.user_history_usernames[uid].append({'timestamp': timestamp, 'username': current_username})
+
     def __analyze_user_create(self, parts: list[str], timestamp: datetime) -> None:
         uid = parse_int(parts[WhdtKeys.user_id])
 
@@ -147,6 +153,9 @@ class Analyzer:
 
             current_blocks = parse_str_array(parts[WhdtKeys.event_user_blocks_historical])
             self.__add_current_user_blocks(uid, current_blocks, timestamp)
+
+            current_username = parts[WhdtKeys.user_text_historical]
+            self.__add_current_user_username(uid, current_username, timestamp)
 
     def __analyze_user_altergroups(self, parts: list[str], timestamp: datetime) -> None:
         uid = parse_int(parts[WhdtKeys.user_id])
@@ -170,10 +179,7 @@ class Analyzer:
             self.__add_provvisory_user_insert(uid, parts)
 
             current_username = parts[WhdtKeys.user_text_historical]
-            if uid not in self.user_history_usernames:
-                self.user_history_usernames[uid] = [{'timestamp': timestamp, 'username': current_username}]
-            else:
-                self.user_history_usernames[uid].append({'timestamp': timestamp, 'username': current_username})
+            self.__add_current_user_username(uid, current_username, timestamp)
 
     def __analyze_page_or_revision(self, event_type: str, timestamp: datetime, parts: list[str]) -> None:
         uid = parse_int(parts[WhdtKeys.event_user_id])
