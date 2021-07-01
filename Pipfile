@@ -9,6 +9,7 @@ termcolor = "*"
 python-dateutil = "*"
 pymongo = "*"
 joblib = "*"
+click = "*"
 
 [dev-packages]
 pylint = "*"

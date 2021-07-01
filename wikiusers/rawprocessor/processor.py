@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from joblib import Parallel, delayed
 from pymongo import MongoClient
 
@@ -56,7 +56,7 @@ class RawProcessor:
     def __init__(
         self,
         sync_data: bool = DEFAULT_SYNC_DATA,
-        datasets_dir: Path = DEFAULT_DATASETS_DIR,
+        datasets_dir: Union[Path, str] = DEFAULT_DATASETS_DIR,
         lang: str = DEFAULT_LANGUAGE,
         parallelize: bool = DEFAULT_PARALLELIZE,
         n_processes: int = DEFAULT_N_PROCESSES,
@@ -64,7 +64,7 @@ class RawProcessor:
         force: bool = DEFAULT_FORCE
     ):
         self.sync_data = sync_data
-        self.datasets_dir = datasets_dir
+        self.datasets_dir = Path(datasets_dir)
         self.lang = lang
         self.parallelize = parallelize
         self.n_processes = n_processes
