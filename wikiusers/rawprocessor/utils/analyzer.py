@@ -148,10 +148,10 @@ class Analyzer:
             self.user_document_update[uid] = new_user_update_obj(
                 uid, username, creation_timestamp, registration_timestamp, is_bot, groups, blocks)
 
-            current_groups = parse_str_array(parts[WhdtKeys.event_user_groups_historical])
+            current_groups = parse_str_array(parts[WhdtKeys.user_groups_historical])
             self.__add_current_user_groups(uid, current_groups, timestamp)
 
-            current_blocks = parse_str_array(parts[WhdtKeys.event_user_blocks_historical])
+            current_blocks = parse_str_array(parts[WhdtKeys.user_blocks_historical])
             self.__add_current_user_blocks(uid, current_blocks, timestamp)
 
             current_username = parts[WhdtKeys.user_text_historical]
@@ -162,7 +162,7 @@ class Analyzer:
         if uid is not None:
             self.__add_provvisory_user_insert(uid, parts)
 
-            current_groups = parse_str_array(parts[WhdtKeys.event_user_groups_historical])
+            current_groups = parse_str_array(parts[WhdtKeys.user_groups_historical])
             self.__add_current_user_groups(uid, current_groups, timestamp)
 
     def __analyze_user_alterblocks(self, parts: list[str], timestamp: datetime) -> None:
@@ -170,7 +170,7 @@ class Analyzer:
         if uid is not None:
             self.__add_provvisory_user_insert(uid, parts)
 
-            current_blocks = parse_str_array(parts[WhdtKeys.event_user_blocks_historical])
+            current_blocks = parse_str_array(parts[WhdtKeys.user_blocks_historical])
             self.__add_current_user_blocks(uid, current_blocks, timestamp)
 
     def __analyze_user_rename(self, parts: list[str], timestamp: datetime) -> None:
