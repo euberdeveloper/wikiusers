@@ -13,7 +13,7 @@ def cli():
 
 @cli.command(help='Downloads the assets if needed and saves per-user raw information on mongodb')
 @click.option('-s', '--sync-data', type=click.BOOL, default=settings.DEFAULT_SYNC_DATA, show_default=True, help='If the dataset will be synced before the processing (by downloading missing datasets or newest version)')
-@click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to hte datasets folder')
+@click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
 @click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
 @click.option('-p', '--parallelize/--no-parallelize', is_flag=True, default=settings.DEFAULT_PARALLELIZE, show_default=True, help='If processing the various datasets files in parallel')
 @click.option('-n', '--n-processes', type=click.INT, default=settings.DEFAULT_N_PROCESSES, show_default=True, help='If parallelize is active, specifies the number of parallel processes. Default is the number of cores of the CPU')
@@ -33,19 +33,26 @@ def postprocess(*, dbname: str, lang: str, batch_size: int, force: bool):
     postprocessor.process()
 
 
-# @cli.group(help="Writes the available langs")
-# def langs():
-#     pass
+@cli.group(help="Handles the datasets")
+def datasets():
+    pass
 
 
-# @langs.command(help='Shows the languages available in the raw datasets')
-# @click.option('-s', '--src', type=click.STRING, default='datasets', show_default=True, help='Folder containing the raw datasets')
-# def raw(*, src: str):
-#     purger = Purger(src)
-#     langs = purger.available_langs
-#     langs_list = "\n".join(langs)
-#     click.echo(click.style('Available langs are:', fg='yellow', bold=True))
-#     click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
+@datasets.command(help='Synces the datasets, by downloading the missing datasets')
+@click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
+@click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
+def sync(*, datasets_dir: str, lang: str):
+    loader = WhdtLoader(datasets_dir, lang)
+    loader.sync_wikies()
+
+@datasets.command(help='Show available langs for the datasets')
+@click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
+def list(*, datasets_dir: str):
+    loader = WhdtLoader(datasets_dir, 'it')
+    langs = loader.get_available_langs()
+    langs_list = "\n".join(langs)
+    click.echo(click.style('Downloadable datasets are available in:', fg='yellow', bold=True))
+    click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
 
 
 def run():

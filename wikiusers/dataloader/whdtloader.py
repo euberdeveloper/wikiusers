@@ -1,13 +1,15 @@
 import requests
+from typing import Union
 from pathlib import Path
-from whdtscraper import fetch_dumps, fetch_latest_version, WIKI_URL
+from whdtscraper import fetch_wikies, fetch_dumps, fetch_latest_version, WIKI_URL
 
 from wikiusers import logger
 
 
 class WhdtLoader:
 
-    def __init__(self, datasets_dir: Path, lang: str):
+    def __init__(self, datasets_dir: Union[str, Path], lang: str):
+        datasets_dir = Path(datasets_dir)
         self.wiki_dir = datasets_dir.joinpath('whdt')
         self.lang = lang
 
@@ -58,3 +60,6 @@ class WhdtLoader:
         wiki_path = version_path.joinpath(wiki)
         files = [file for file in wiki_path.iterdir() if file.is_file()]
         return sorted(files, key=lambda f: f.stem)
+
+    def get_available_langs(self) -> list[str]:
+        return [wiki['wiki'].replace('wiki', '') for wiki in fetch_wikies('latest', wikitype='wiki')]
