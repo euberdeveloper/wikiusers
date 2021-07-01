@@ -68,10 +68,10 @@ class Analyzer:
         else:
             user_month_namespace[event_type] += 1
         if minor_edit:
-            if 'minor_edits' not in user_month_namespace:
-                user_month_namespace['minor_edits'] = 1
+            if 'minor_edit' not in user_month_namespace:
+                user_month_namespace['minor_edit'] = 1
             else:
-                user_month_namespace['minor_edits'] += 1
+                user_month_namespace['minor_edit'] += 1
 
         if 'last_event' in user_month:
             last_timestamp = user_month['last_event']
