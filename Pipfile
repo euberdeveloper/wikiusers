@@ -20,5 +20,7 @@ python_version = "3.9"
 
 [scripts]
 lint = "pylint wikiusers"
-cawiki = "bash -c 'python -m wikiusers 2>&1 | tee ./logs/cawiki_`date --iso-8601=ns`.log'"
-eswiki = "bash -c 'python -m wikiusers 2>&1 | tee ./logs/eswiki_`date --iso-8601=ns`.log'"
+cawiki = "bash -c 'python -m wikiusers rawprocess -l ca 2>&1 | tee ./logs/cawiki_`date --iso-8601=ns`.log'"
+itwiki = "bash -c 'python -m wikiusers rawprocess -l it 2>&1 | tee ./logs/itwiki_`date --iso-8601=ns`.log'"
+eswiki = "bash -c 'python -m wikiusers rawprocess -l es 2>&1 | tee ./logs/eswiki_`date --iso-8601=ns`.log'"
+enwiki = "bash -c 'python -m wikiusers rawprocess -l en 2>&1 | tee ./logs/enwiki_`date --iso-8601=ns`.log'"
