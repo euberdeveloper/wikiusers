@@ -36,3 +36,4 @@ class Uploader:
 
     def upload_users(self, user_batch: list[dict]) -> None:
         self.collection.insert_many(user_batch)
+        user_batch.clear()
