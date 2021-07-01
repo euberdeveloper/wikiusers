@@ -62,4 +62,12 @@ class WhdtLoader:
         return sorted(files, key=lambda f: f.stem)
 
     def get_available_langs(self) -> list[str]:
-        return [wiki['wiki'].replace('wiki', '') for wiki in fetch_wikies('latest', wikitype='wiki')]
+        return sorted([wiki['wiki'].replace('wiki', '') for wiki in fetch_wikies('latest', wikitype='wiki')])
+
+    def get_local_langs(self) -> list[str]:
+        versions = sorted([dir.name for dir in self.wiki_dir.iterdir() if dir.is_dir()], reverse=True)
+        if not versions:
+            return []
+
+        path = self.wiki_dir.joinpath(versions[0])
+        return sorted([dir.name.replace('wiki', '') for dir in path.iterdir() if dir.is_dir()])

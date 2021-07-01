@@ -57,13 +57,22 @@ def sync(*, datasets_dir: str, lang: str):
     loader = WhdtLoader(datasets_dir, lang)
     loader.sync_wikies()
 
-@datasets.command(help='Show available langs for the datasets')
+@datasets.command(help='Show available langs for the whdt datasets')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
 def list(*, datasets_dir: str):
-    loader = WhdtLoader(datasets_dir, 'it')
+    loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
     langs = loader.get_available_langs()
     langs_list = "\n".join(langs)
     click.echo(click.style('Downloadable datasets are available in:', fg='yellow', bold=True))
+    click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
+
+@datasets.command(help='Show downloaded langs for the whdt datasets')
+@click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
+def local(*, datasets_dir: str):
+    loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
+    langs = loader.get_local_langs()
+    langs_list = "\n".join(langs)
+    click.echo(click.style('Downloaded datasets are available in:', fg='yellow', bold=True))
     click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
 
 
