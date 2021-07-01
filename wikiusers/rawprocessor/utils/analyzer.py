@@ -169,7 +169,7 @@ class Analyzer:
         if uid is not None:
             self.__add_provvisory_user_insert(uid, parts)
 
-            current_username = parts[WhdtKeys.event_user_text_historical]
+            current_username = parts[WhdtKeys.user_text_historical]
             if uid not in self.user_history_usernames:
                 self.user_history_usernames[uid] = [{'timestamp': timestamp, 'username': current_username}]
             else:
