@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Optional, Tuple
 from joblib import Parallel, delayed
+from pymongo import MongoClient
 
 from wikiusers import logger
-from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE
+from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE
 from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor.utils import Analyzer
 
@@ -15,11 +16,26 @@ class RawProcessor:
         if self.sync_data:
             self.loader.sync_wikies()
 
+    def __check_if_collection_already_exists(self) -> None:
+        connection = MongoClient()
+        database = connection.get_database(self.database)
+        collection = database.get_collection(f'{self.lang}wiki_raw')
+
+        db_collections = database.list_collection_names()
+        if collection.name in db_collections:
+            if self.force:
+                logger.warn('Collection already exists: dropping',
+                            lang=self.lang, scope='UPLOADER')
+                collection.drop()
+            else:
+                logger.err('Collection already exists',
+                           lang=self.lang, scope='UPLOADER')
+                raise Exception(f'Collection already exists')
+
     def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
-        
         time_str = tsv_file_name.split('.')[-3]
         parts = time_str.split('-')
-        
+
         if len(parts) > 1:
             [year, month] = parts
         else:
@@ -44,7 +60,8 @@ class RawProcessor:
         lang: str = DEFAULT_LANGUAGE,
         parallelize: bool = DEFAULT_PARALLELIZE,
         n_processes: int = DEFAULT_N_PROCESSES,
-        database: str = DEFAULT_DATABASE
+        database: str = DEFAULT_DATABASE,
+        force: bool = DEFAULT_FORCE
     ):
         self.sync_data = sync_data
         self.datasets_dir = datasets_dir
@@ -52,8 +69,10 @@ class RawProcessor:
         self.parallelize = parallelize
         self.n_processes = n_processes
         self.database = database
+        self.force = force
 
         self.__init_loader()
+        self.__check_if_collection_already_exists()
 
     def _process_file(self, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
