@@ -1,4 +1,3 @@
-from wikiusers import logger
 from pymongo import MongoClient
 
 
