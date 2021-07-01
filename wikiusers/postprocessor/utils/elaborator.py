@@ -36,36 +36,52 @@ def _fill_usernames_history(input: dict, output: dict) -> None:
 
 def _fill_activity(input: dict, output: dict) -> None:
     activity_per_month = {}
+
     activity_per_year = {}
+
     activity_total = {}
-    
+
     events_per_month: dict[str, dict] = input['events']['per_month']
     for year, year_events in events_per_month.items():
         activity_per_month[year] = {}
 
         activity_per_year[year] = {}
         apy = activity_per_year[year]
+        apy_max_inactive_interval_in_days_sum = 0
+        apy_max_inactive_interval_in_days_count = 0
+        apy_max_inactive_interval_in_days_max = -1
+        apy_n_activity_days = 0
+        apy_sesc_since_same_day_event_sum = 0
+        apy_sesc_since_same_day_event_count = 0
+        apy_avg_secs_since_last_edit_on_same_page_sum = 0
+        apy_avg_secs_since_last_edit_on_same_page_count = 0
+        apy_avg_page_n_sum = 0
+        apy_avg_page_n_count = 0
+        apy_avg_page_entropy_sum = 0
+        apy_avg_page_entropy_count = 0
 
         for month, month_details in year_events.items():
             activity_per_month[year][month] = {}
             apm = activity_per_month[year][month]
+
+            # PER MONTH PROPS
 
             apm['max_inactive_interval_in_days'] = month_details['max_inact_interval']
             apm['first_event_timestamp'] = month_details['first_event']
             apm['last_event_timestamp'] = month_details['last_event']
             apm['n_of_activity_days'] = month_details['activity_days']
             apm['avg_secs_since_same_day_event'] = _avg(
-                month_details['secs_since_same_day_event'], 
+                month_details['secs_since_same_day_event'],
                 month_details['secs_since_same_day_event_count']
             )
             try:
                 apm['avg_secs_since_last_edit_on_same_page'] = _avg(
-                    month_details['pages_seconds'], 
+                    month_details['pages_seconds'],
                     month_details['pages_seconds_count']
                 )
             except:
                 pass
-            
+
             try:
                 apm['pages_activity'] = month_details['pages']
             except:
@@ -94,6 +110,111 @@ def _fill_activity(input: dict, output: dict) -> None:
                     apme_total['total'] += total_ns
                 except:
                     apme_total['total'] = total_ns
+
+            # PER YEAR PROPS
+
+            # max inactive interval
+
+            apy_max_inactive_interval_in_days_sum += month_details['max_inact_interval']
+            apy_max_inactive_interval_in_days_count += 1
+            apy_max_inactive_interval_in_days_max = max(
+                apy_max_inactive_interval_in_days_max, month_details['max_inact_interval'])
+
+            # first/last timestamp
+
+            if 'first_event_timestamp' not in apy:
+                apy['first_event_timestamp'] = month_details['first_event']
+
+            apy['last_event_timestamp'] = month_details['last_event']
+
+            # n activity days
+
+            apy_n_activity_days += month_details['activity_days']
+
+            # secs since same day event
+
+            apy_sesc_since_same_day_event_sum += month_details['secs_since_same_day_event']
+            apy_sesc_since_same_day_event_count += month_details['secs_since_same_day_event_count']
+
+            # secs since last edit on same page
+
+            try:
+                apy_avg_secs_since_last_edit_on_same_page_sum += month_details['pages_seconds']
+                apy_avg_secs_since_last_edit_on_same_page_count += month_details['pages_seconds_count']
+            except:
+                pass
+
+            # page n and entropy
+
+            try:
+                apy_avg_page_n_sum += month_details['pages']['n']
+                apy_avg_page_n_count += 1
+
+                apy_avg_page_entropy_sum += month_details['pages']['entropy']
+                apy_avg_page_entropy_count += 1
+            except:
+                pass
+
+
+        # PER YEAR PROPS
+
+        # max inactive interval
+
+        apy['max_inactive_interval_in_days'] = apy_max_inactive_interval_in_days_max
+        apy['avg_max_inactive_interval_in_days'] = _avg(
+            apy_max_inactive_interval_in_days_sum, apy_max_inactive_interval_in_days_count)
+
+        # n activity days
+
+        apy['n_of_activity_days'] = apy_n_activity_days
+
+        # secs since same day event
+
+        apy['avg_secs_since_same_day_event'] = _avg(
+            apy_sesc_since_same_day_event_sum, apy_sesc_since_same_day_event_count)
+
+        # avg secs since last edit on same page
+
+        apy['avg_secs_since_last_edit_on_same_page'] = _avg(
+            apy_avg_secs_since_last_edit_on_same_page_sum, apy_avg_secs_since_last_edit_on_same_page_count)
+
+        # page n and entropy
+
+        apy['pages_activity'] = {
+            'avg_n': _avg(
+                apy_avg_page_n_sum, apy_avg_page_n_count),
+            'avg_entropy': _avg(
+                apy_avg_page_entropy_sum, apy_avg_page_entropy_count)
+        }
+
+        # events
+
+        apy['events'] = {'per_namespace': {}, 'total': {}}
+        apye = apy['events']
+        apye_per_namespace = apye['per_namespace']
+        apye_total = apye['total']
+        for month, month_details in activity_per_month[year].items():
+            apme_total = month_details['events']['total']
+            apme_per_namespace = month_details['events']['per_namespace']
+
+            for event_type, event_count in apme_total.items():
+                try:
+                    apye_total[event_type] += event_count
+                except:
+                    apye_total[event_type] = event_count
+
+            for ns, ns_events in apme_per_namespace.items():
+                if ns not in apye_per_namespace:
+                    apye_per_namespace[ns] = {}
+                apye_curr_ns = apye_per_namespace[ns]
+                
+                for event_type, event_count in ns_events.items():
+                    try:
+                        apye_curr_ns[event_type] += event_count
+                    except:
+                        apye_curr_ns[event_type] = event_count
+
+                
 
     output['activity'] = {
         'total': activity_total,
