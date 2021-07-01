@@ -337,17 +337,21 @@ def _fill_activity(input: dict, output: dict) -> None:
 
 
 def _elaborate_user(u: dict) -> dict:
-    user = {}
-    _fill_basic(u, user)
-    _fill_groups_or_blocks(u, user, 'groups')
-    _fill_groups_or_blocks(u, user, 'blocks')
-    _fill_usernames_history(u, user)
-    _fill_activity(u, user)
-    return user
+    if u['username']:
+        user = {}
+        _fill_basic(u, user)
+        _fill_groups_or_blocks(u, user, 'groups')
+        _fill_groups_or_blocks(u, user, 'blocks')
+        _fill_usernames_history(u, user)
+        _fill_activity(u, user)
+        return user
+    else:
+        return None
 
 
 def elaborate_users_batch(users_batch: list[dict]) -> list[dict]:
     return [
         _elaborate_user(user)
         for user in users_batch
+        if user is not None
     ]
