@@ -8,5 +8,5 @@
 from wikiusers.postprocessor import PostProcessor
 
 def run():
-    postprocessor = PostProcessor(lang='ca')
+    postprocessor = PostProcessor(lang='ca', force=True)
     postprocessor.process()

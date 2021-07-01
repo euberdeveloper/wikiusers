@@ -8,3 +8,4 @@ DEFAULT_SYNC_DATA = True
 DEFAULT_PARALLELIZE = True
 DEFAULT_N_PROCESSES = multiprocessing.cpu_count()
 DEFAULT_BATCH_SIZE = int(3e5)
+DEFAULT_FORCE = False
