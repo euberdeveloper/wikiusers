@@ -75,7 +75,8 @@ class Uploader:
 
         for uid in list(user_history_usernames.keys()):
             if uid in user_history_usernames:
-                updates.append(UpdateOne({'id': uid}, {'$push': {'history_usernames': {'$each': user_history_usernames[uid]}}}))
+                updates.append(
+                    UpdateOne({'id': uid}, {'$push': {'history_usernames': {'$each': user_history_usernames[uid]}}}))
                 user_history_usernames.pop(uid)
 
         return updates
@@ -103,36 +104,40 @@ class Uploader:
 
         logger.debug(f'Retrieving user inserts', year=year, month=month, scope='UPLOADER')
         user_inserts = self.__get_user_inserts(user_document)
-        logger.debug(f'Retrieving user updates', year=year, month=month, scope='UPLOADER')
-        user_updates = self.__get_user_updates(user_document_update)
-        logger.debug(f'Retrieving events updates', year=year, month=month, scope='UPLOADER')
-        events_updates = self.__get_events_updates(month, year, user_month_events, user_helper_info)
-        logger.debug(f'Retrieving user alters', year=year, month=month, scope='UPLOADER')
-        user_alerts = self.__get_user_alters(user_alter_groups, user_alter_blocks)
-        logger.debug(f'Retrieving user history usernames', year=year, month=month, scope='UPLOADER')
-        user_usernames_updates = self.__get_user_history_usernames(user_history_usernames)
-
         logger.debug(f'Pushing user inserts', year=year, month=month, scope='UPLOADER')
         if (user_inserts):
             try:
                 self.collection.insert_many(user_inserts, ordered=False)
             except:
                 pass
+        user_inserts.clear()
 
+        logger.debug(f'Retrieving user updates', year=year, month=month, scope='UPLOADER')
+        user_updates = self.__get_user_updates(user_document_update)
         logger.debug(f'Pushing user updates', year=year, month=month, scope='UPLOADER')
         if (user_updates):
             self.collection.bulk_write(user_updates)
+        user_updates.clear()
 
+        logger.debug(f'Retrieving events updates', year=year, month=month, scope='UPLOADER')
+        events_updates = self.__get_events_updates(month, year, user_month_events, user_helper_info)
         logger.debug(f'Pushing events updates', year=year, month=month, scope='UPLOADER')
         if (events_updates):
             self.collection.bulk_write(events_updates)
+        events_updates.clear()
 
+        logger.debug(f'Retrieving user alters', year=year, month=month, scope='UPLOADER')
+        user_alerts = self.__get_user_alters(user_alter_groups, user_alter_blocks)
         logger.debug(f'Pushing user alerts', year=year, month=month, scope='UPLOADER')
         if (user_alerts):
             self.collection.bulk_write(user_alerts)
+        user_alerts.clear()
 
+        logger.debug(f'Retrieving user history usernames', year=year, month=month, scope='UPLOADER')
+        user_usernames_updates = self.__get_user_history_usernames(user_history_usernames)
         logger.debug(f'Pushing user history usernames', year=year, month=month, scope='UPLOADER')
         if (user_usernames_updates):
             self.collection.bulk_write(user_usernames_updates)
+        user_usernames_updates.clear()
 
         logger.succ(f'Uploading data', year=year, month=month, scope='UPLOADER')
