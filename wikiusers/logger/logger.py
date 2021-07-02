@@ -22,7 +22,7 @@ def _log(*args: list[str], tag: str, colour: str, lang: Optional[str] = None, mo
     timestamp_str = colored(f'[{timestamp}]', 'cyan')
     tag = colored(f'[{tag}]', colour, attrs=['bold'])
     text = _log_scopes(lang=lang, month=month, year=year, scope=scope)
-    print(f'{timestamp_str} {tag} {text}', *args)
+    print(f'{timestamp_str} {tag} {text}', *args, flush=True)
 
 
 def info(*args: list[str], lang: Optional[str] = None, month: Optional[str] = None, year: Optional[str] = None, scope: Optional[str] = None) -> None:
