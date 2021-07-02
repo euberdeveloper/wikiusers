@@ -72,7 +72,7 @@ class RawProcessor:
         self.force = force
 
         self.__init_loader()
-        self.__check_if_collection_already_exists()
+        #self.__check_if_collection_already_exists()
 
     def _process_file(self, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
