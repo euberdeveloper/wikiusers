@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from pymongo import MongoClient
 
 from wikiusers import logger
-from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE
+from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE, DEFAULT_SKIP
 from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor.utils import Analyzer
 
@@ -25,12 +25,14 @@ class RawProcessor:
         if collection.name in db_collections:
             if self.force:
                 logger.warn('Collection already exists: dropping',
-                            lang=self.lang, scope='UPLOADER')
+                            lang=self.lang, scope='RAWPROCESSOR')
                 collection.drop()
+            elif self.skip:
+                logger.warn('Collection already exists, skipping',
+                           lang=self.lang, scope='RAWPROCESSOR')
             else:
-                logger.err('Collection already exists',
-                           lang=self.lang, scope='UPLOADER')
-                raise Exception(f'Collection already exists')
+                logger.warn('Collection already exists, it does not matter',
+                           lang=self.lang, scope='RAWPROCESSOR')
 
     def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
         time_str = tsv_file_name.split('.')[-3]
@@ -61,7 +63,8 @@ class RawProcessor:
         parallelize: bool = DEFAULT_PARALLELIZE,
         n_processes: int = DEFAULT_N_PROCESSES,
         database: str = DEFAULT_DATABASE,
-        force: bool = DEFAULT_FORCE
+        force: bool = DEFAULT_FORCE,
+        skip: bool = DEFAULT_SKIP
     ):
         self.sync_data = sync_data
         self.datasets_dir = Path(datasets_dir)
@@ -70,16 +73,17 @@ class RawProcessor:
         self.n_processes = n_processes
         self.database = database
         self.force = force
+        self.skip = skip
 
         self.__init_loader()
-        #self.__check_if_collection_already_exists()
+        self.__check_if_collection_already_exists()
 
     def _process_file(self, path: Path) -> None:
-        logger.info(f'Starting processing {path}', lang=self.lang, scope='ANALYZER')
+        logger.info(f'Starting processing {path}', lang=self.lang, scope='RAWPROCESSOR')
         month, year = self.__get_tsv_month_and_year(path.name)
         analyzer = Analyzer(path, month, year, self.lang, self.database)
         analyzer.analyze()
-        logger.succ(f'Finished processing {path}', lang=self.lang, scope='ANALYZER')
+        logger.succ(f'Finished processing {path}', lang=self.lang, scope='RAWPROCESSOR')
 
     def process(self) -> None:
         datasets_paths = self.loader.get_tsv_files()

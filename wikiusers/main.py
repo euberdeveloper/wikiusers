@@ -3,7 +3,7 @@ import click
 
 from wikiusers import settings
 from wikiusers.dataloader import WhdtLoader
-from wikiusers.rawprocessor import RawProcessor, processor
+from wikiusers.rawprocessor import RawProcessor
 from wikiusers.postprocessor import PostProcessor
 
 @click.group(help="Tool to analyze the wikimedia history dump tsv and obtain per-user information")
@@ -17,9 +17,10 @@ def cli():
 @click.option('-p', '--parallelize/--no-parallelize', is_flag=True, default=settings.DEFAULT_PARALLELIZE, show_default=True, help='If processing the various datasets files in parallel')
 @click.option('-n', '--n-processes', type=click.INT, default=settings.DEFAULT_N_PROCESSES, show_default=True, help='If parallelize is active, specifies the number of parallel processes. Default is the number of cores of the CPU')
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
-@click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and overriden')
-def rawprocess(*, sync_data: bool, datasets_dir: str, lang: str, parallelize: bool, n_processes: int, dbname: str, force: bool):
-    rawprocessor = RawProcessor(sync_data, datasets_dir, lang, parallelize, n_processes, dbname, force)
+@click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
+@click.option('--skip/--no-skip', is_flag=True, default=settings.DEFAULT_SKIP, show_default=True, help='If already populated collections will be skipped')
+def rawprocess(*, sync_data: bool, datasets_dir: str, lang: str, parallelize: bool, n_processes: int, dbname: str, force: bool, skip: bool):
+    rawprocessor = RawProcessor(sync_data, datasets_dir, lang, parallelize, n_processes, dbname, force, skip)
     rawprocessor.process()
 
 @cli.group(help="Given an already populated raw collection, postprocesses it, creating/updating a new collection")
@@ -30,7 +31,7 @@ def postprocess():
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
 @click.option('-b', '--batch-size', type=click.INT, default=settings.DEFAULT_BATCH_SIZE, show_default=True, help='Users from mongodb are taken and updated in batches. This option specifies the batch size')
-@click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and overriden')
+@click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
 def users(*, dbname: str, lang: str, batch_size: int, force: bool):
     postprocessor = PostProcessor(settings.DEFAULT_DATASETS_DIR, dbname, lang, batch_size, force)
     postprocessor.process_users()

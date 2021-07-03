@@ -9,3 +9,4 @@ DEFAULT_PARALLELIZE = True
 DEFAULT_N_PROCESSES = multiprocessing.cpu_count()
 DEFAULT_BATCH_SIZE = int(1e5)
 DEFAULT_FORCE = False
+DEFAULT_SKIP = False
