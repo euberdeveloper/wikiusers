@@ -10,6 +10,8 @@ python-dateutil = "*"
 pymongo = "*"
 joblib = "*"
 click = "*"
+whaaaaat = "*"
+prompt-toolkit = "==1.0.14"
 
 [dev-packages]
 pylint = "*"

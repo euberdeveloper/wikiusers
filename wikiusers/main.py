@@ -1,10 +1,26 @@
 #!/usr/bin/env python
 import click
+from whaaaaat import prompt
 
 from wikiusers import settings
 from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor import RawProcessor
 from wikiusers.postprocessor import PostProcessor
+
+def select_languages(available_langs: list[str], current_langs: list[str]) -> list[str]:
+    current_langs = [l.upper() for l in current_langs]
+    include_all = 'all' in current_langs
+    options = [
+        {'name': option, 'value': option, 'checked': include_all or option in current_langs}
+        for option in available_langs
+    ]
+    answer = prompt({
+        'name': 'langs',
+        'message': 'Select the languages to purge',
+        'type': 'checkbox',
+        'choices': options
+    })
+    return answer['langs']
 
 @click.group(help="Tool to analyze the wikimedia history dump tsv and obtain per-user information")
 def cli():
@@ -13,14 +29,20 @@ def cli():
 @cli.command(help='Downloads the assets if needed and saves per-user raw information on mongodb')
 @click.option('-s', '--sync-data', type=click.BOOL, default=settings.DEFAULT_SYNC_DATA, show_default=True, help='If the dataset will be synced before the processing (by downloading missing datasets or newest version)')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
-@click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
+@click.option('-l', '--langs', type=click.STRING, multiple=True, default=[], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-p', '--parallelize/--no-parallelize', is_flag=True, default=settings.DEFAULT_PARALLELIZE, show_default=True, help='If processing the various datasets files in parallel')
 @click.option('-n', '--n-processes', type=click.INT, default=settings.DEFAULT_N_PROCESSES, show_default=True, help='If parallelize is active, specifies the number of parallel processes. Default is the number of cores of the CPU')
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
 @click.option('--skip/--no-skip', is_flag=True, default=settings.DEFAULT_SKIP, show_default=True, help='If already populated collections will be skipped')
-def rawprocess(*, sync_data: bool, datasets_dir: str, lang: str, parallelize: bool, n_processes: int, dbname: str, force: bool, skip: bool):
-    rawprocessor = RawProcessor(sync_data, datasets_dir, lang, parallelize, n_processes, dbname, force, skip)
+@click.option('-c', '--choose-langs/--no-choose-langs', is_flag=True, show_default=False, help='If the user will be asked to select the languages')
+def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallelize: bool, n_processes: int, dbname: str, force: bool, skip: bool, choose_langs: bool):
+    if choose_langs:
+        loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
+        available_langs = loader.get_available_langs()
+        langs = select_languages(available_langs, langs)
+    
+    rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize, n_processes, dbname, force, skip)
     rawprocessor.process()
 
 @cli.group(help="Given an already populated raw collection, postprocesses it, creating/updating a new collection")

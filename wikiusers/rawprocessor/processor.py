@@ -11,10 +11,11 @@ from wikiusers.rawprocessor.utils import Analyzer
 
 class RawProcessor:
 
-    def __init_loader(self) -> None:
-        self.loader = WhdtLoader(self.datasets_dir, self.lang)
+    def __init_loader(self, lang: str) -> None:
+        loader = WhdtLoader(self.datasets_dir, lang)
         if self.sync_data:
-            self.loader.sync_wikies()
+            loader.sync_wikies()
+        return loader
 
     def __check_if_collection_already_exists(self) -> None:
         connection = MongoClient()
@@ -59,7 +60,7 @@ class RawProcessor:
         self,
         sync_data: bool = DEFAULT_SYNC_DATA,
         datasets_dir: Union[Path, str] = DEFAULT_DATASETS_DIR,
-        lang: str = DEFAULT_LANGUAGE,
+        langs: Union[str, list[str]] = DEFAULT_LANGUAGE,
         parallelize: bool = DEFAULT_PARALLELIZE,
         n_processes: int = DEFAULT_N_PROCESSES,
         database: str = DEFAULT_DATABASE,
@@ -68,31 +69,32 @@ class RawProcessor:
     ):
         self.sync_data = sync_data
         self.datasets_dir = Path(datasets_dir)
-        self.lang = lang
+        self.langs = [langs] if type(langs) == str else langs
         self.parallelize = parallelize
         self.n_processes = n_processes
         self.database = database
         self.force = force
         self.skip = skip
 
-        self.__init_loader()
         self.__check_if_collection_already_exists()
 
-    def _process_file(self, path: Path) -> None:
-        logger.info(f'Starting processing {path}', lang=self.lang, scope='RAWPROCESSOR')
+    def _process_file(self, lang: str, path: Path) -> None:
+        logger.info(f'Starting processing {path}', lang=lang, scope='RAWPROCESSOR')
         month, year = self.__get_tsv_month_and_year(path.name)
-        analyzer = Analyzer(path, month, year, self.lang, self.database)
+        analyzer = Analyzer(path, month, year, lang, self.database)
         analyzer.analyze()
-        logger.succ(f'Finished processing {path}', lang=self.lang, scope='RAWPROCESSOR')
+        logger.succ(f'Finished processing {path}', lang=lang, scope='RAWPROCESSOR')
 
     def process(self) -> None:
-        datasets_paths = self.loader.get_tsv_files()
+        for lang in self.langs:
+            loader = self.__init_loader(lang)
+            datasets_paths = loader.get_tsv_files()
 
-        if self.parallelize:
-            Parallel(n_jobs=self.n_processes)(
-                delayed(self._process_file)(path)
-                for path in datasets_paths
-            )
-        else:
-            for path in datasets_paths:
-                self._process_file(path)
+            if self.parallelize:
+                Parallel(n_jobs=self.n_processes)(
+                    delayed(self._process_file)(lang, path)
+                    for path in datasets_paths
+                )
+            else:
+                for path in datasets_paths:
+                    self._process_file(lang, path)
