@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from pymongo import MongoClient
 
 from wikiusers import logger
-from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE, DEFAULT_SKIP
+from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE, DEFAULT_SKIP, DEFAULT_ERASE_DATASETS
 from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor.utils import Analyzer
 
@@ -68,7 +68,8 @@ class RawProcessor:
         n_processes: int = DEFAULT_N_PROCESSES,
         database: str = DEFAULT_DATABASE,
         force: bool = DEFAULT_FORCE,
-        skip: bool = DEFAULT_SKIP
+        skip: bool = DEFAULT_SKIP,
+        erase_datasets: bool = DEFAULT_ERASE_DATASETS
     ):
         self.sync_data = sync_data
         self.datasets_dir = Path(datasets_dir)
@@ -78,6 +79,7 @@ class RawProcessor:
         self.database = database
         self.force = force
         self.skip = skip
+        self.erase_datasets = erase_datasets
 
     def _process_file(self, lang: str, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=lang, scope='RAWPROCESSOR')
@@ -85,6 +87,9 @@ class RawProcessor:
         analyzer = Analyzer(path, month, year, lang, self.database)
         analyzer.analyze()
         logger.succ(f'Finished processing {path}', lang=lang, scope='RAWPROCESSOR')
+        if self.erase_datasets:
+            path.unlink()
+            logger.info(f'Deleted {path}', lang=lang, scope='RAWPROCESSOR')
 
     def process(self) -> None:
         for lang in self.langs:

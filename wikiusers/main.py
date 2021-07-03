@@ -9,8 +9,11 @@ from wikiusers.postprocessor import PostProcessor
 
 def select_languages(available_langs: list[str], current_langs: list[str]) -> list[str]:
     current_langs = [l.upper() for l in current_langs]
+
     include_all = 'all' in current_langs
-    current_langs.remove('all')
+    if include_all:
+        current_langs.remove('all')
+        
     options = [
         {'name': option, 'value': option, 'checked': include_all or option in current_langs}
         for option in available_langs
@@ -36,8 +39,9 @@ def cli():
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
 @click.option('--skip/--no-skip', is_flag=True, default=settings.DEFAULT_SKIP, show_default=True, help='If already populated collections will be skipped')
+@click.option('-e', '--erase-datasets/--no-erase-datasets', is_flag=True, default=settings.DEFAULT_ERASE_DATASETS, show_default=True, help='If the datasets files will be erased after having been processed.')
 @click.option('-c', '--choose-langs/--no-choose-langs', is_flag=True, show_default=False, help='If the user will be asked to select the languages')
-def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallelize: bool, n_processes: int, dbname: str, force: bool, skip: bool, choose_langs: bool):
+def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallelize: bool, n_processes: int, dbname: str, force: bool, skip: bool, erase_datasets: bool, choose_langs: bool):
     if choose_langs:
         loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
         available_langs = loader.get_available_langs()
@@ -46,7 +50,7 @@ def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallel
         loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
         langs = loader.get_available_langs()
 
-    rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize, n_processes, dbname, force, skip)
+    rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize, n_processes, dbname, force, skip, erase_datasets)
     rawprocessor.process()
 
 @cli.group(help="Given an already populated raw collection, postprocesses it, creating/updating a new collection")
