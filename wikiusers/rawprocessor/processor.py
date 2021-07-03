@@ -17,23 +17,23 @@ class RawProcessor:
             loader.sync_wikies()
         return loader
 
-    def __check_if_collection_already_exists(self) -> None:
+    def __check_if_collection_already_exists(self, lang: str) -> None:
         connection = MongoClient()
         database = connection.get_database(self.database)
-        collection = database.get_collection(f'{self.lang}wiki_raw')
+        collection = database.get_collection(f'{lang}wiki_raw')
 
         db_collections = database.list_collection_names()
         if collection.name in db_collections:
             if self.force:
                 logger.warn('Collection already exists: dropping',
-                            lang=self.lang, scope='RAWPROCESSOR')
+                            lang=lang, scope='RAWPROCESSOR')
                 collection.drop()
             elif self.skip:
                 logger.warn('Collection already exists, skipping',
-                           lang=self.lang, scope='RAWPROCESSOR')
+                           lang=lang, scope='RAWPROCESSOR')
             else:
                 logger.warn('Collection already exists, it does not matter',
-                           lang=self.lang, scope='RAWPROCESSOR')
+                           lang=lang, scope='RAWPROCESSOR')
 
     def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
         time_str = tsv_file_name.split('.')[-3]
@@ -76,8 +76,6 @@ class RawProcessor:
         self.force = force
         self.skip = skip
 
-        self.__check_if_collection_already_exists()
-
     def _process_file(self, lang: str, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=lang, scope='RAWPROCESSOR')
         month, year = self.__get_tsv_month_and_year(path.name)
@@ -87,6 +85,7 @@ class RawProcessor:
 
     def process(self) -> None:
         for lang in self.langs:
+            self.__check_if_collection_already_exists(lang)
             loader = self.__init_loader(lang)
             datasets_paths = loader.get_tsv_files()
 
