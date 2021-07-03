@@ -42,7 +42,10 @@ def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallel
         loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
         available_langs = loader.get_available_langs()
         langs = select_languages(available_langs, langs)
-    
+    elif 'all' in langs:
+        loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
+        langs = loader.get_available_langs()
+
     rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize, n_processes, dbname, force, skip)
     rawprocessor.process()
 
