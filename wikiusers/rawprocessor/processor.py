@@ -17,7 +17,7 @@ class RawProcessor:
             loader.sync_wikies()
         return loader
 
-    def __check_if_collection_already_exists(self, lang: str) -> None:
+    def __check_if_collection_already_exists(self, lang: str) -> bool:
         connection = MongoClient()
         database = connection.get_database(self.database)
         collection = database.get_collection(f'{lang}wiki_raw')
@@ -31,9 +31,12 @@ class RawProcessor:
             elif self.skip:
                 logger.warn('Collection already exists, skipping',
                            lang=lang, scope='RAWPROCESSOR')
+
+                return True
             else:
                 logger.warn('Collection already exists, it does not matter',
                            lang=lang, scope='RAWPROCESSOR')
+        return False
 
     def __get_tsv_month_and_year(self, tsv_file_name: str) -> Tuple[Optional[int], Optional[int]]:
         time_str = tsv_file_name.split('.')[-3]
@@ -85,7 +88,9 @@ class RawProcessor:
 
     def process(self) -> None:
         for lang in self.langs:
-            self.__check_if_collection_already_exists(lang)
+            if self.__check_if_collection_already_exists(lang):
+                continue
+
             loader = self.__init_loader(lang)
             datasets_paths = loader.get_tsv_files()
 
