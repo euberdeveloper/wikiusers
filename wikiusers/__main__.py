@@ -1,8 +1,8 @@
 from wikiusers.main import run
-from wikiusers.metrics import MonthlyDropoff, MonthlyTotalPopulation, MonthlyActivePopulation, MonthlyDropoffOverActivePopulation
+from wikiusers.metrics import MonthlyDropoff, MonthlyTotalPopulation, MonthlyActivePopulation, MonthlyDropoffOverActivePopulation, AdminsHistory
 
-if __name__ == '__main__':
-    run()
+# if __name__ == '__main__':
+#     run()
 
 
 # shit = MonthlyDropoff(lang='ca')
@@ -17,7 +17,7 @@ if __name__ == '__main__':
 # shit.compute()
 # shit.save_json()
 
-# shit = MonthlyDropoffOverActivePopulation(lang='ca', active_per_month_thr=1000)
+# shit = MonthlyDropoffOverActivePopulation(lang='es', active_per_month_thr=1000)
 # shit.compute()
 # shit.save_json()
 # MonthlyDropoffOverActivePopulation.show_graph([
@@ -27,3 +27,8 @@ if __name__ == '__main__':
 #     (12, 200, 'orange'),
 #     (12, 1000, 'purple')
 # ], 'ca')
+
+shit = AdminsHistory(lang='it')
+shit.compute()
+shit.save_json()
+AdminsHistory.show_graphs('it')

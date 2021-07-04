@@ -103,7 +103,6 @@ class MonthlyDropoffOverActivePopulation:
                 axs[i].set_ylabel('Dropoff count')
                 axs[i].plot(x_values, y_values, color=color)
                 axs[i].set_title(f'At least a month with {actthr} events, died since {diethr} months')
-                
         
         fig.savefig('result.png', bbox_inches='tight')
 
