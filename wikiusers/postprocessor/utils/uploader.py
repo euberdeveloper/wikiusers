@@ -29,7 +29,7 @@ class Uploader:
 
     def check_if_collection_already_exists(self) -> None:
         db_collections = self.database.list_collection_names()
-        if self.collection.name in db_collections:
+        if f'{self.lang}wiki' in db_collections:
             if self.force:
                 logger.warn('Collection already exists: dropping',
                             lang=self.lang, scope='UPLOADER')
