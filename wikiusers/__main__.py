@@ -21,9 +21,9 @@ if __name__ == '__main__':
 # shit.compute()
 # shit.save_json()
 # MonthlyDropoffOverActivePopulation.show_graph([
-#     (12, 5),
-#     (12, 15),
-#     (12, 50),
-#     (12, 200),
-#     (12, 1000)
+#     (12, 5, 'blue'),
+#     (12, 15, 'red'),
+#     (12, 50, 'green'),
+#     (12, 200, 'orange'),
+#     (12, 1000, 'purple')
 # ], 'ca')

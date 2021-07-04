@@ -88,21 +88,46 @@ class MonthlyDropoffOverActivePopulation:
         lang: str = settings.DEFAULT_LANGUAGE,
         metrics_path: Union[str, Path] = settings.DEFAULT_METRICS_DIR
     ) -> None:
-        plt.figure(figsize=(12, 5), dpi=80)
-        plt.title('Monthly dropoff of active population')
-        plt.xlabel('Time')
-        plt.ylabel('Dropoff count')
+        fig, axs = plt.subplots(len(thresholds), 1, figsize=(18,18))
 
         metrics_path = Path(metrics_path)
-        for thrs in thresholds:
-            diethr, actthr = thrs
+        for i, thrs in enumerate(thresholds):
+            diethr, actthr, color = thrs
+
             path = Path(metrics_path).joinpath(lang).joinpath(
                 f'monthly_dropoff_with_threshold_{diethr}_over_active_population_{actthr}.json')
             with open(path) as input_file:
                 raw_data = loads(input_file.read())
                 x_values = [get_month_date_from_key(key) for key in raw_data.keys()]
                 y_values = raw_data.values()
-                plt.plot(x_values, y_values, label=f'Min. {actthr} edits')
+                axs[i].set_ylabel('Dropoff count')
+                axs[i].plot(x_values, y_values, color=color)
+                axs[i].set_title(f'At least a month with {actthr} events, died since {diethr} months')
                 
-        plt.legend()
-        plt.savefig('result.png')
+        
+        fig.savefig('result.png', bbox_inches='tight')
+
+    @staticmethod
+    def show_graph_perc(
+        thresholds: list[Tuple[int, int]],
+        lang: str = settings.DEFAULT_LANGUAGE,
+        metrics_path: Union[str, Path] = settings.DEFAULT_METRICS_DIR
+    ) -> None:
+        fig, axs = plt.subplots(len(thresholds), 1, figsize=(18,18))
+
+        metrics_path = Path(metrics_path)
+        for i, thrs in enumerate(thresholds):
+            diethr, actthr, color = thrs
+
+            path = Path(metrics_path).joinpath(lang).joinpath(
+                f'monthly_dropoff_with_threshold_{diethr}_over_active_population_{actthr}.json')
+            with open(path) as input_file:
+                raw_data = loads(input_file.read())
+                x_values = [get_month_date_from_key(key) for key in raw_data.keys()]
+                y_values = raw_data.values()
+                axs[i].set_ylabel('Dropoff count')
+                axs[i].plot(x_values, y_values, color=color)
+                axs[i].set_title(f'At least a month with {actthr} events, died since {diethr} months')
+                
+        
+        fig.savefig('result.png', bbox_inches='tight')
