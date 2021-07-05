@@ -12,7 +12,6 @@ joblib = "*"
 click = "*"
 whaaaaat = "*"
 prompt-toolkit = "==1.0.14"
-matplotlib = "*"
 
 [dev-packages]
 pylint = "*"
