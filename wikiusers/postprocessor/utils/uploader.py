@@ -46,4 +46,11 @@ class Uploader:
         self.collection.bulk_write(user_updates)
         user_updates.clear()
 
+    @staticmethod
+    def get_available_langs(dbname: str) -> list[str]:
+        connection = MongoClient()
+        database = connection.get_database(dbname)
+        db_collections: list[str] = database.list_collection_names()
+        return [collection_name.replace('wiki_raw', '') for collection_name in db_collections if collection_name.endswith('_raw')]
+
     

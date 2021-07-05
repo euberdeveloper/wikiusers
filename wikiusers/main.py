@@ -7,13 +7,14 @@ from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor import RawProcessor
 from wikiusers.postprocessor import PostProcessor
 
+
 def select_languages(available_langs: list[str], current_langs: list[str]) -> list[str]:
-    current_langs = [l.upper() for l in current_langs]
+    current_langs = [l for l in current_langs]
 
     include_all = 'all' in current_langs
     if include_all:
         current_langs.remove('all')
-        
+
     options = [
         {'name': option, 'value': option, 'checked': include_all or option in current_langs}
         for option in available_langs
@@ -26,9 +27,11 @@ def select_languages(available_langs: list[str], current_langs: list[str]) -> li
     })
     return answer['langs']
 
+
 @click.group(help="Tool to analyze the wikimedia history dump tsv and obtain per-user information")
 def cli():
     pass
+
 
 @cli.command(help='Downloads the assets if needed and saves per-user raw information on mongodb')
 @click.option('-s', '--sync-data', type=click.BOOL, default=settings.DEFAULT_SYNC_DATA, show_default=True, help='If the dataset will be synced before the processing (by downloading missing datasets or newest version)')
@@ -50,29 +53,47 @@ def rawprocess(*, sync_data: bool, datasets_dir: str, langs: list[str], parallel
         loader = WhdtLoader(datasets_dir, settings.DEFAULT_LANGUAGE)
         langs = loader.get_available_langs()
 
-    rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize, n_processes, dbname, force, skip, erase_datasets)
+    rawprocessor = RawProcessor(sync_data, datasets_dir, langs, parallelize,
+                                n_processes, dbname, force, skip, erase_datasets)
     rawprocessor.process()
+
 
 @cli.group(help="Given an already populated raw collection, postprocesses it, creating/updating a new collection")
 def postprocess():
     pass
 
+
 @postprocess.command(help='Postprocesses the users of the raw collection')
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
-@click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
+@click.option('-l', '--langs', type=click.STRING, multiple=True, default=[settings.DEFAULT_LANGUAGE], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-b', '--batch-size', type=click.INT, default=settings.DEFAULT_BATCH_SIZE, show_default=True, help='Users from mongodb are taken and updated in batches. This option specifies the batch size')
 @click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
-def users(*, dbname: str, lang: str, batch_size: int, force: bool):
-    postprocessor = PostProcessor(settings.DEFAULT_DATASETS_DIR, dbname, lang, batch_size, force)
+@click.option('-c', '--choose-langs/--no-choose-langs', is_flag=True, show_default=False, help='If the user will be asked to select the languages')
+def users(*, dbname: str, langs: list[str], batch_size: int, force: bool, choose_langs: bool):
+    if choose_langs:
+        available_langs = PostProcessor.get_available_langs(dbname)
+        langs = select_languages(available_langs, langs)
+    elif 'all' in langs:
+        langs = PostProcessor.get_available_langs(dbname)
+
+    postprocessor = PostProcessor(settings.DEFAULT_DATASETS_DIR, dbname, langs, batch_size, force)
     postprocessor.process_users()
+
 
 @postprocess.command(help='Postprocesses the users of the raw collection')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
 @click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
-@click.option('-l', '--lang', type=click.STRING, default=settings.DEFAULT_LANGUAGE, show_default=True, help='The language that you want to process')
+@click.option('-l', '--langs', type=click.STRING, multiple=True, default=[settings.DEFAULT_LANGUAGE], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-b', '--batch-size', type=click.INT, default=settings.DEFAULT_BATCH_SIZE, show_default=True, help='Users from mongodb are taken and updated in batches. This option specifies the batch size')
-def sex(*, datasets_dir: str, dbname: str, lang: str, batch_size: int):
-    postprocessor = PostProcessor(datasets_dir, dbname, lang, batch_size, settings.DEFAULT_FORCE)
+@click.option('-c', '--choose-langs/--no-choose-langs', is_flag=True, show_default=False, help='If the user will be asked to select the languages')
+def sex(*, datasets_dir: str, dbname: str, langs: list[str], batch_size: int, choose_langs: bool):
+    if choose_langs:
+        available_langs = PostProcessor.get_available_langs(dbname)
+        langs = select_languages(available_langs, langs)
+    elif 'all' in langs:
+        langs = PostProcessor.get_available_langs(dbname)
+
+    postprocessor = PostProcessor(datasets_dir, dbname, langs, batch_size, settings.DEFAULT_FORCE)
     postprocessor.process_sex()
 
 
@@ -88,6 +109,7 @@ def sync(*, datasets_dir: str, lang: str):
     loader = WhdtLoader(datasets_dir, lang)
     loader.sync_wikies()
 
+
 @datasets.command(help='Show available langs for the whdt datasets')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
 def list(*, datasets_dir: str):
@@ -96,6 +118,7 @@ def list(*, datasets_dir: str):
     langs_list = "\n".join(langs)
     click.echo(click.style('Downloadable datasets are available in:', fg='yellow', bold=True))
     click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
+
 
 @datasets.command(help='Show downloaded langs for the whdt datasets')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
@@ -109,6 +132,7 @@ def local(*, datasets_dir: str):
 
 def run():
     cli()
+
 
 if __name__ == '__main__':
     run()
