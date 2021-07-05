@@ -15,6 +15,16 @@ class AdminsHistory:
         self.result[user['id']] = {'n0': {}, 'n1': {}, 'n2': {}, 'n3': {}}
         result = self.result[user['id']]
 
+        try:
+            first_event = user['activity']['total']['first_event_timestamp']
+        except:
+            first_event = None
+
+        try:
+            last_event = user['activity']['total']['last_event_timestamp']
+        except:
+            last_event = None
+
         per_month = user['activity']['per_month']
 
         for year, year_obj in per_month.items():
@@ -25,6 +35,11 @@ class AdminsHistory:
                         result[ns][key] = month_obj['events']['per_namespace'][ns]['total']
                     except:
                         result[ns][key] = 0
+
+        groups_history = user['groups']['history']
+        admin_history = [{'from': el['from'].isoformat() if el['from'] else first_event.isoformat(), 'to': el['to'].isoformat()
+                          if el['to'] else last_event.isoformat()} for el in groups_history if 'sysop' in el['groups']]
+        result['admin_history'] = admin_history
 
     def __init__(
         self,
@@ -79,7 +94,7 @@ class AdminsHistory:
             name = file.stem
             with open(file) as input_file:
                 raw_data = loads(input_file.read())
-                
+
                 plt.ylabel('Events count')
                 for ns in ['n0', 'n1', 'n2', 'n3']:
                     ns_vals = raw_data[ns]
@@ -88,11 +103,9 @@ class AdminsHistory:
                     plt.plot(x_values, y_values, label=ns)
                     plt.title(f'Administrator {name}')
 
+                for el in raw_data['admin_history']:
+                    plt.axvspan(el['from'], el['to'], facecolor='#83ccef9c')
+
                 plt.legend()
                 plt.savefig(dest_root.joinpath(f'{name}.png'), bbox_inches='tight')
                 plt.clf()
-
-        
-
-                
-        
