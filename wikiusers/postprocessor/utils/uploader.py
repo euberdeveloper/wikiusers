@@ -51,6 +51,6 @@ class Uploader:
         connection = MongoClient()
         database = connection.get_database(dbname)
         db_collections: list[str] = database.list_collection_names()
-        return [collection_name.replace('wiki_raw', '') for collection_name in db_collections if collection_name.endswith('_raw')]
+        return [collection_name.split('wiki')[0] for collection_name in db_collections]
 
     

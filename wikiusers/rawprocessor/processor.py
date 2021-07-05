@@ -76,7 +76,7 @@ class RawProcessor:
         self.langs = [langs] if type(langs) == str else langs
         self.parallelize = parallelize
         self.n_processes = n_processes
-        self.database = database
+        self.database = f'{database}_raw'
         self.force = force
         self.skip = skip
         self.erase_datasets = erase_datasets

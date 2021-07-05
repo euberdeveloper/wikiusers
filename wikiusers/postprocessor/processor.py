@@ -32,7 +32,7 @@ class PostProcessor:
     def process_users(self) -> None:
         for lang in self.langs:
             logger.info('Start postprocessing users', lang=lang, scope='POSTPROCESSOR')
-            batcher = Batcher(self.database, lang, self.batch_size)
+            batcher = Batcher(f'{self.database}_raw', lang, self.batch_size)
             uploader = self.__get_uploader(lang)
             for i, user_batch in enumerate(batcher):
                 logger.debug(f'Start processing batch {i}', lang=lang, scope='POSTPROCESSOR')
@@ -60,4 +60,8 @@ class PostProcessor:
 
     @staticmethod
     def get_available_langs(dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
+        return Uploader.get_available_langs(f'{dbname}_raw')
+
+    @staticmethod
+    def get_processed_langs(dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
         return Uploader.get_available_langs(dbname)

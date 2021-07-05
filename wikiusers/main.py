@@ -129,6 +129,25 @@ def local(*, datasets_dir: str):
     click.echo(click.style('Downloaded datasets are available in:', fg='yellow', bold=True))
     click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
 
+@cli.group(help="Handles the database")
+def database():
+    pass
+
+@database.command(help='Show raw processed languages')
+@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE_PREFIX, show_default=True, help='The prefix of the database name')
+def rawprocessed(*, dbname: str):
+    langs = PostProcessor.get_available_langs(dbname)
+    langs_list = "\n".join(langs)
+    click.echo(click.style('Raw processed collections are in:', fg='yellow', bold=True))
+    click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
+
+@database.command(help='Show post processed languages')
+@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE_PREFIX, show_default=True, help='The prefix of the database name')
+def postprocessed(*, dbname: str):
+    langs = PostProcessor.get_processed_langs(dbname)
+    langs_list = "\n".join(langs)
+    click.echo(click.style('Post processed collections are in:', fg='yellow', bold=True))
+    click.echo(click.style(f'{langs_list}', fg='blue', bold=True))
 
 def run():
     cli()
