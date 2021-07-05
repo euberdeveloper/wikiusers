@@ -39,7 +39,7 @@ def cli():
 @click.option('-l', '--langs', type=click.STRING, multiple=True, default=[settings.DEFAULT_LANGUAGE], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-p', '--parallelize/--no-parallelize', is_flag=True, default=settings.DEFAULT_PARALLELIZE, show_default=True, help='If processing the various datasets files in parallel')
 @click.option('-n', '--n-processes', type=click.INT, default=settings.DEFAULT_N_PROCESSES, show_default=True, help='If parallelize is active, specifies the number of parallel processes. Default is the number of cores of the CPU')
-@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
+@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE_PREFIX, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
 @click.option('--skip/--no-skip', is_flag=True, default=settings.DEFAULT_SKIP, show_default=True, help='If already populated collections will be skipped')
 @click.option('-e', '--erase-datasets/--no-erase-datasets', is_flag=True, default=settings.DEFAULT_ERASE_DATASETS, show_default=True, help='If the datasets files will be erased after having been processed.')
@@ -64,7 +64,7 @@ def postprocess():
 
 
 @postprocess.command(help='Postprocesses the users of the raw collection')
-@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
+@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE_PREFIX, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-l', '--langs', type=click.STRING, multiple=True, default=[settings.DEFAULT_LANGUAGE], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-b', '--batch-size', type=click.INT, default=settings.DEFAULT_BATCH_SIZE, show_default=True, help='Users from mongodb are taken and updated in batches. This option specifies the batch size')
 @click.option('-f', '--force/--no-force', is_flag=True, default=settings.DEFAULT_FORCE, show_default=True, help='If already populated collections will be dropped and reprocessed')
@@ -82,7 +82,7 @@ def users(*, dbname: str, langs: list[str], batch_size: int, force: bool, choose
 
 @postprocess.command(help='Postprocesses the users of the raw collection')
 @click.option('-i', '--datasets-dir', type=click.STRING, default=settings.DEFAULT_DATASETS_DIR, show_default=True, help='The path to the datasets folder')
-@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE, show_default=True, help='The name of the MongoDB database where the result will be saved')
+@click.option('-d', '--dbname', type=click.STRING, default=settings.DEFAULT_DATABASE_PREFIX, show_default=True, help='The name of the MongoDB database where the result will be saved')
 @click.option('-l', '--langs', type=click.STRING, multiple=True, default=[settings.DEFAULT_LANGUAGE], show_default=True, help='The languages that you want to process. If "all" is passed, all the languages are selected')
 @click.option('-b', '--batch-size', type=click.INT, default=settings.DEFAULT_BATCH_SIZE, show_default=True, help='Users from mongodb are taken and updated in batches. This option specifies the batch size')
 @click.option('-c', '--choose-langs/--no-choose-langs', is_flag=True, show_default=False, help='If the user will be asked to select the languages')

@@ -2,7 +2,7 @@ from typing import Union
 from pathlib import Path
 
 from wikiusers import logger
-from wikiusers.settings import DEFAULT_LANGUAGE, DEFAULT_DATABASE, DEFAULT_BATCH_SIZE, DEFAULT_FORCE
+from wikiusers import settings
 from wikiusers.postprocessor.utils import Batcher, Uploader, elaborate_users_batch, SexElaborator
 
 
@@ -16,11 +16,11 @@ class PostProcessor:
 
     def __init__(
         self,
-        datasets_dir: Union[Path, str] = DEFAULT_DATABASE,
-        database: str = DEFAULT_DATABASE,
-        langs: Union[str, list[str]] = DEFAULT_LANGUAGE,
-        batch_size: int = DEFAULT_BATCH_SIZE,
-        force: bool = DEFAULT_FORCE
+        datasets_dir: Union[Path, str] = settings.DEFAULT_DATASETS_DIR,
+        database: str = settings.DEFAULT_DATABASE_PREFIX,
+        langs: Union[str, list[str]] = settings.DEFAULT_LANGUAGE,
+        batch_size: int = settings.DEFAULT_BATCH_SIZE,
+        force: bool = settings.DEFAULT_FORCE
     ):
         self.datasets_dir = Path(datasets_dir)
         self.database = database
@@ -59,5 +59,5 @@ class PostProcessor:
             logger.succ('Finished postprocessing sex', lang=lang, scope='POSTPROCESSOR')
 
     @staticmethod
-    def get_available_langs(dbname: str = DEFAULT_DATABASE) -> list[str]:
+    def get_available_langs(dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
         return Uploader.get_available_langs(dbname)

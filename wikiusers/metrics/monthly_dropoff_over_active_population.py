@@ -41,7 +41,7 @@ class MonthlyDropoffOverActivePopulation:
     def __init__(
         self,
         lang: str = settings.DEFAULT_LANGUAGE,
-        database: str = settings.DEFAULT_DATABASE,
+        database: str = settings.DEFAULT_DATABASE_PREFIX,
         batch_size: str = settings.DEFAULT_BATCH_SIZE,
         metrics_path: Union[str, Path] = settings.DEFAULT_METRICS_DIR,
         dropoff_month_threshold: int = settings.DEFAULT_DROPOFF_MONTH_THRESHOLD,

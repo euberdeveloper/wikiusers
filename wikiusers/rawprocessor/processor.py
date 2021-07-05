@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from pymongo import MongoClient
 
 from wikiusers import logger
-from wikiusers.settings import DEFAULT_DATASETS_DIR, DEFAULT_N_PROCESSES, DEFAULT_LANGUAGE, DEFAULT_PARALLELIZE, DEFAULT_SYNC_DATA, DEFAULT_DATABASE, DEFAULT_FORCE, DEFAULT_SKIP, DEFAULT_ERASE_DATASETS
+from wikiusers import settings
 from wikiusers.dataloader import WhdtLoader
 from wikiusers.rawprocessor.utils import Analyzer
 
@@ -61,15 +61,15 @@ class RawProcessor:
 
     def __init__(
         self,
-        sync_data: bool = DEFAULT_SYNC_DATA,
-        datasets_dir: Union[Path, str] = DEFAULT_DATASETS_DIR,
-        langs: Union[str, list[str]] = DEFAULT_LANGUAGE,
-        parallelize: bool = DEFAULT_PARALLELIZE,
-        n_processes: int = DEFAULT_N_PROCESSES,
-        database: str = DEFAULT_DATABASE,
-        force: bool = DEFAULT_FORCE,
-        skip: bool = DEFAULT_SKIP,
-        erase_datasets: bool = DEFAULT_ERASE_DATASETS
+        sync_data: bool = settings.DEFAULT_SYNC_DATA,
+        datasets_dir: Union[Path, str] = settings.DEFAULT_DATASETS_DIR,
+        langs: Union[str, list[str]] = settings.DEFAULT_LANGUAGE,
+        parallelize: bool = settings.DEFAULT_PARALLELIZE,
+        n_processes: int = settings.DEFAULT_N_PROCESSES,
+        database: str = settings.DEFAULT_DATABASE_PREFIX,
+        force: bool = settings.DEFAULT_FORCE,
+        skip: bool = settings.DEFAULT_SKIP,
+        erase_datasets: bool = settings.DEFAULT_ERASE_DATASETS
     ):
         self.sync_data = sync_data
         self.datasets_dir = Path(datasets_dir)
