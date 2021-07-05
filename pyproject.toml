@@ -1,2 +1,32 @@
+[tool.poetry]
+name = "wikiusers"
+version = "1.0.0"
+description = "A python3 module that uses the Mediawiki History Dump Tsv to download the datasets, analyze them, uploading them to MongoDB and postprocess them. The result is a database with tons of information on every individual user of Wikipedia"
+authors = ["Eugenio Vinicio Berretta <euberdeveloper@gmail.com>"]
+keywords = ["wikiusers", "mediawiki-history-dump-tsv", "mediawiki", "wikipedia", "wikipedians"]
+license = "GPL"
+homepage = "https://github.com/euberdeveloper/wikiusers"
+repository = "https://github.com/euberdeveloper/wikiusers"
+include = [
+    "LICENSE"
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.9"
+whdtscraper = "^1.0.1"
+termcolor = "^1.1.0"
+python-dateutil = "^2.8.1"
+pymongo = "^3.11.4"
+joblib = "^1.0.1"
+pylint = "^2.9.3"
+autopep8 = "^1.5.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.autopep8]
 max_line_length = 125
