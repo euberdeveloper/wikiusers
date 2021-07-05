@@ -28,6 +28,7 @@ class PostProcessor:
     def process_users(self) -> None:
         logger.info('Start postprocessing users', lang=self.lang, scope='POSTPROCESSOR')
         self.uploader.check_if_collection_already_exists()
+        self.uploader.create_index()
         for i, user_batch in enumerate(self.batcher):
             logger.debug(f'Start processing batch {i}', lang=self.lang, scope='POSTPROCESSOR')
             processed_users = elaborate_users_batch(user_batch)

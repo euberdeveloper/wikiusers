@@ -6,15 +6,10 @@ from wikiusers import logger
 
 class Uploader:
 
-    def __create_index(self) -> None:
-        self.collection.create_index([('id', ASCENDING)], name='id_index', unique=True)
-        logger.debug('Created id index', lang=self.lang, scope='Uploader')
-
     def __init_connection(self) -> None:
         self.connection = MongoClient()
         self.database = self.connection.get_database(self.database)
         self.collection = self.database.get_collection(f'{self.lang}wiki')
-        self.__create_index()
 
     def __init__(
         self,
@@ -38,6 +33,10 @@ class Uploader:
                 logger.err('Collection already exists',
                            lang=self.lang, scope='UPLOADER')
                 raise Exception(f'Collection already exists')
+
+    def create_index(self) -> None:
+        self.collection.create_index([('id', ASCENDING)], name='id_index', unique=True)
+        logger.debug('Created id index', lang=self.lang, scope='Uploader')
 
     def upload_users(self, user_batch: list[dict]) -> None:
         self.collection.insert_many(user_batch)
