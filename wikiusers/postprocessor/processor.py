@@ -23,7 +23,7 @@ class PostProcessor:
         self.force = force
         self.batcher = Batcher(self.database, self.lang, self.batch_size)
         self.uploader = Uploader(self.database, self.lang, self.force)
-        self.sex_elaborator = SexElaborator(self.datasets_dir, self.lang, self.batch_size)
+        self.sex_elaborator: Union[SexElaborator, None] = None
 
     def process_users(self) -> None:
         logger.info('Start postprocessing users', lang=self.lang, scope='POSTPROCESSOR')
@@ -38,6 +38,10 @@ class PostProcessor:
 
     def process_sex(self) -> None:
         logger.info('Start postprocessing sex', lang=self.lang, scope='POSTPROCESSOR')
+
+        if not self.sex_elaborator:
+            self.sex_elaborator = SexElaborator(self.datasets_dir, self.lang, self.batch_size)
+
         for i, user_updates in enumerate(self.sex_elaborator):
             logger.debug(f'Start uploading batch {i}', lang=self.lang, scope='POSTPROCESSOR')
             self.uploader.upload_sex(user_updates)
