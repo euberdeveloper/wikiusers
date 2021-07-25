@@ -210,6 +210,7 @@ class Analyzer:
         start_month: Optional[int],
         start_year: Optional[int],
         lang: str,
+        dburl: str,
         database: str
     ):
         self.path = path
@@ -218,7 +219,7 @@ class Analyzer:
         self.current_month = '01' if start_month is None else two_digits(start_month)
         self.current_year = str(start_year) if start_year is not None else start_year
 
-        self.uploader = Uploader(database, lang)
+        self.uploader = Uploader(dburl, database, lang)
         self.__init_globals()
 
     def analyze(self) -> None:

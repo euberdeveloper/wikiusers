@@ -2,6 +2,7 @@ from pathlib import Path
 import multiprocessing
 
 DEFAULT_DATASETS_DIR = Path.home().joinpath('.wikiusers').joinpath('datasets') if __name__ != '__main__' else Path(__file__).parent.parent.parent.joinpath('datasets')
+DEFAULT_DATABASE_URL = 'mongodb://localhost:27017'
 DEFAULT_DATABASE_PREFIX = 'wikiusers'
 DEFAULT_LANGUAGE = 'it'
 DEFAULT_SYNC_DATA = True

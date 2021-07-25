@@ -4,16 +4,18 @@ from pymongo import MongoClient
 class Batcher:
 
     def __init_connection(self) -> None:
-        self.connection = MongoClient()
+        self.connection = MongoClient(self.dburl)
         self.database = self.connection.get_database(self.database)
         self.collection = self.database.get_collection(f'{self.lang}wiki_raw')
 
     def __init__(
         self,
+        dburl: str,
         database: str,
         lang: str,
         batch_size: int
     ):
+        self.dburl = dburl
         self.database = database
         self.lang = lang
         self.batch_size = batch_size

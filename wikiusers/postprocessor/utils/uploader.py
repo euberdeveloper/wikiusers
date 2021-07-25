@@ -7,16 +7,18 @@ from wikiusers import logger
 class Uploader:
 
     def __init_connection(self) -> None:
-        self.connection = MongoClient()
+        self.connection = MongoClient(self.dburl)
         self.database = self.connection.get_database(self.database)
         self.collection = self.database.get_collection(f'{self.lang}wiki')
 
     def __init__(
         self,
+        dburl: str,
         database: str,
         lang: str,
         force: bool
     ):
+        self.dburl = dburl
         self.database = database
         self.lang = lang
         self.force = force
@@ -47,10 +49,8 @@ class Uploader:
         user_updates.clear()
 
     @staticmethod
-    def get_available_langs(dbname: str) -> list[str]:
-        connection = MongoClient()
+    def get_available_langs(dburl: str, dbname: str) -> list[str]:
+        connection = MongoClient(dburl)
         database = connection.get_database(dbname)
         db_collections: list[str] = database.list_collection_names()
         return [collection_name.split('wiki')[0] for collection_name in db_collections]
-
-    

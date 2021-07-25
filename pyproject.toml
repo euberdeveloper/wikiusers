@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wikiusers"
-version = "1.1.2"
+version = "1.2.0"
 description = "A python3 module that uses the Mediawiki History Dump Tsv to download the datasets, analyze them, uploading them to MongoDB and postprocess them. The result is a database with tons of information on every individual user of Wikipedia"
 authors = ["Eugenio Vinicio Berretta <euberdeveloper@gmail.com>"]
 keywords = ["wikiusers", "mediawiki-history-dump-tsv", "mediawiki", "wikipedia", "wikipedians"]

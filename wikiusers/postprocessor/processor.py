@@ -9,13 +9,14 @@ from wikiusers.postprocessor.utils import Batcher, Uploader, elaborate_users_bat
 class PostProcessor:
 
     def __get_uploader(self, lang: str) -> Uploader:
-        uploader = Uploader(self.database, lang, self.force)
+        uploader = Uploader(self.dburl, self.database, lang, self.force)
         uploader.check_if_collection_already_exists()
         uploader.create_index()
         return uploader
 
     def __init__(
         self,
+        dburl: str = settings.DEFAULT_DATABASE_URL,
         datasets_dir: Union[Path, str] = settings.DEFAULT_DATASETS_DIR,
         database: str = settings.DEFAULT_DATABASE_PREFIX,
         langs: Union[str, list[str]] = settings.DEFAULT_LANGUAGE,
@@ -23,6 +24,7 @@ class PostProcessor:
         force: bool = settings.DEFAULT_FORCE
     ):
         self.datasets_dir = Path(datasets_dir)
+        self.dburl = dburl
         self.database = database
         self.langs = [langs] if type(langs) == str else langs
         self.batch_size = batch_size
@@ -32,7 +34,7 @@ class PostProcessor:
     def process_users(self) -> None:
         for lang in self.langs:
             logger.info('Start postprocessing users', lang=lang, scope='POSTPROCESSOR')
-            batcher = Batcher(f'{self.database}_raw', lang, self.batch_size)
+            batcher = Batcher(self.dburl, f'{self.database}_raw', lang, self.batch_size)
             uploader = self.__get_uploader(lang)
             for i, user_batch in enumerate(batcher):
                 logger.debug(f'Start processing batch {i}', lang=lang, scope='POSTPROCESSOR')
@@ -59,9 +61,9 @@ class PostProcessor:
             logger.succ('Finished postprocessing sex', lang=lang, scope='POSTPROCESSOR')
 
     @staticmethod
-    def get_available_langs(dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
-        return Uploader.get_available_langs(f'{dbname}_raw')
+    def get_available_langs(dburl: str = settings.DEFAULT_DATABASE_URL, dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
+        return Uploader.get_available_langs(dburl, f'{dbname}_raw')
 
     @staticmethod
-    def get_processed_langs(dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
-        return Uploader.get_available_langs(dbname)
+    def get_processed_langs(dburl: str = settings.DEFAULT_DATABASE_URL, dbname: str = settings.DEFAULT_DATABASE_PREFIX) -> list[str]:
+        return Uploader.get_available_langs(dburl, dbname)

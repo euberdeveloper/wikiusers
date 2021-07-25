@@ -18,7 +18,7 @@ class RawProcessor:
         return loader
 
     def __check_if_collection_already_exists(self, lang: str) -> bool:
-        connection = MongoClient()
+        connection = MongoClient(self.dburl)
         database = connection.get_database(self.database)
         collection = database.get_collection(f'{lang}wiki_raw')
 
@@ -61,6 +61,7 @@ class RawProcessor:
 
     def __init__(
         self,
+        dburl: str = settings.DEFAULT_DATABASE_URL,
         sync_data: bool = settings.DEFAULT_SYNC_DATA,
         datasets_dir: Union[Path, str] = settings.DEFAULT_DATASETS_DIR,
         langs: Union[str, list[str]] = settings.DEFAULT_LANGUAGE,
@@ -71,6 +72,7 @@ class RawProcessor:
         skip: bool = settings.DEFAULT_SKIP,
         erase_datasets: bool = settings.DEFAULT_ERASE_DATASETS
     ):
+        self.dburl = dburl
         self.sync_data = sync_data
         self.datasets_dir = Path(datasets_dir)
         self.langs = [langs] if type(langs) == str else langs
@@ -84,7 +86,7 @@ class RawProcessor:
     def _process_file(self, lang: str, path: Path) -> None:
         logger.info(f'Starting processing {path}', lang=lang, scope='RAWPROCESSOR')
         month, year = self.__get_tsv_month_and_year(path.name)
-        analyzer = Analyzer(path, month, year, lang, self.database)
+        analyzer = Analyzer(path, month, year, lang, self.dburl, self.database)
         analyzer.analyze()
         logger.succ(f'Finished processing {path}', lang=lang, scope='RAWPROCESSOR')
         if self.erase_datasets:

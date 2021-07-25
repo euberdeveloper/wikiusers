@@ -81,9 +81,9 @@ class Uploader:
 
         return updates
 
-    def __init__(self, database: str, lang: str):
+    def __init__(self, dburl: str, database: str, lang: str):
         self.lang = lang
-        self.connection = MongoClient()
+        self.connection = MongoClient(dburl)
         self.database = self.connection.get_database(database)
         self.collection = self.database.get_collection(f'{lang}wiki_raw')
         self.__create_index()
