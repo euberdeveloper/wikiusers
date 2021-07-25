@@ -6,11 +6,11 @@ from whdtscraper import fetch_wikies, fetch_dumps, fetch_latest_version, WIKI_UR
 from wikiusers import logger
 
 
-class WhdtLoader:
+class MhdLoader:
 
     def __init__(self, datasets_dir: Union[str, Path], lang: str):
         datasets_dir = Path(datasets_dir)
-        self.wiki_dir = datasets_dir.joinpath('whdt')
+        self.wiki_dir = datasets_dir.joinpath('mhd')
         self.lang = lang
 
     def __download(self, file_path: str, file_path_obj: Path, tsv_url: str) -> None:

@@ -5,14 +5,14 @@ from pymongo import MongoClient
 
 from wikiusers import logger
 from wikiusers import settings
-from wikiusers.dataloader import WhdtLoader
+from wikiusers.dataloader import MhdLoader
 from wikiusers.rawprocessor.utils import Analyzer
 
 
 class RawProcessor:
 
     def __init_loader(self, lang: str) -> None:
-        loader = WhdtLoader(self.datasets_dir, lang)
+        loader = MhdLoader(self.datasets_dir, lang)
         if self.sync_data:
             loader.sync_wikies()
         return loader

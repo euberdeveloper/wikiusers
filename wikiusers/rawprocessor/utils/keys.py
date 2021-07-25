@@ -1,4 +1,4 @@
-class WhdtKeys:
+class MhdKeys:
     wiki_db = 0
     event_entity = 1
     event_type = 2

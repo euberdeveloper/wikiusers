@@ -1,1 +1,1 @@
-from .whdtloader import WhdtLoader
+from .mhdloader import MhdLoader
